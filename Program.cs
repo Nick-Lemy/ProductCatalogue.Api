@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+using ProductCatalogue.Api.Data;
 using ProductCatalogue.Api.Mappings;
 using ProductCatalogue.Api.Models;
 using ProductCatalogue.Api.Services;
@@ -16,6 +18,11 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+
+builder.Services.AddDbContext<AppDbContext>(
+    options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")
+    )
+);
 
 builder.Services.AddSingleton<List<Product>>(
 [

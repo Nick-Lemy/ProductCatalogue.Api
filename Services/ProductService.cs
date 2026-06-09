@@ -1,4 +1,6 @@
 using Mapster;
+using Microsoft.EntityFrameworkCore;
+using ProductCatalogue.Api.Data;
 using ProductCatalogue.Api.DTOs;
 using ProductCatalogue.Api.Models;
 
@@ -6,40 +8,41 @@ namespace ProductCatalogue.Api.Services;
 
 public class ProductService : IProductService
 {
-    private readonly List<Product> _products;
+    private readonly AppDbContext _context;
 
-    public ProductService(List<Product> products)
+    public ProductService(AppDbContext context)
     {
-        _products = products;
+        _context = context;
     }
 
     public async Task<Product> CreateAsync(CreateProductDto createProductDto)
     {
         Product newProduct = createProductDto.Adapt<Product>();
-        _products.Add(newProduct);
-        await Task.Delay(200);
+        _context.Products.Add(newProduct);
+        await _context.SaveChangesAsync();
         return newProduct;
     }
 
     public async Task<List<Product>> GetAllAsync()
     {
-        await Task.Delay(200);
-        return _products;
+        List<Product> products = await _context.Products.ToListAsync();
+        return products;
     }
 
     public async Task<Product?> GetByIdAsync(Guid id)
     {
-        await Task.Delay(200);
-        return _products.FirstOrDefault(p => p.Id == id);
+        Product? product = await _context.Products.FindAsync(id);
+        return product;
     }
 
     public async Task<Product?> UpdateAsync(Guid id, UpdateProductDto updateProductDto)
     {
         await Task.Delay(200);
-        var index = _products.FindIndex(p => p.Id == id);
-        if (index == -1) return null;
-        var product = _products[index];
+        var product = await _context.Products.FindAsync(id);
+        if (product is null) return null;
         updateProductDto.Adapt(product);
+        product.UpdatedAt = DateTimeOffset.UtcNow;
+        await _context.SaveChangesAsync();
         return product;
     }
 
@@ -48,7 +51,8 @@ public class ProductService : IProductService
         var product = await GetByIdAsync(id);
         if (product is null) return false;
 
-        _products.Remove(product);
+        _context.Products.Remove(product);
+        await _context.SaveChangesAsync();
         return true;
     }
 }
