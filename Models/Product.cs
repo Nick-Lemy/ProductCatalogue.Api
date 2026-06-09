@@ -11,7 +11,7 @@ public class Product
     public string Brand { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
     public string TargetMarket { get; set; } = string.Empty;
-    public string Season { get; set} = string.Empty;
+    public string Season { get; set; } = string.Empty;
 
     public ProductStatus Status { get; set; }
     public ProductReadiness Readiness { get; set; }
