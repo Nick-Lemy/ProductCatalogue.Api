@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ProductCatalogue.Api.Data;
@@ -11,9 +12,11 @@ using ProductCatalogue.Api.Data;
 namespace ProductCatalogue.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260609182845_SeedProducts")]
+    partial class SeedProducts
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -85,7 +88,7 @@ namespace ProductCatalogue.Api.Migrations
                             Id = new Guid("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
                             Brand = "Jack & Jones",
                             Category = "Shirts",
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 6, 9, 18, 28, 44, 577, DateTimeKind.Unspecified).AddTicks(5145), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "A timeless Oxford shirt crafted from premium cotton.",
                             Name = "Classic Oxford Shirt",
                             ProductCode = "SHT-001",
@@ -93,14 +96,14 @@ namespace ProductCatalogue.Api.Migrations
                             Season = "SS25",
                             Status = 0,
                             TargetMarket = "Men",
-                            UpdatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 6, 9, 18, 28, 44, 577, DateTimeKind.Unspecified).AddTicks(5146), new TimeSpan(0, 0, 0, 0, 0))
                         },
                         new
                         {
                             Id = new Guid("b2c3d4e5-f6a7-8901-bcde-f12345678901"),
                             Brand = "Selected Homme",
                             Category = "Trousers",
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 6, 9, 18, 28, 44, 577, DateTimeKind.Unspecified).AddTicks(9694), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Modern slim fit chinos with a comfortable stretch fabric.",
                             Name = "Slim Fit Chinos",
                             ProductCode = "TRS-002",
@@ -108,14 +111,14 @@ namespace ProductCatalogue.Api.Migrations
                             Season = "SS25",
                             Status = 0,
                             TargetMarket = "Men",
-                            UpdatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 6, 9, 18, 28, 44, 577, DateTimeKind.Unspecified).AddTicks(9695), new TimeSpan(0, 0, 0, 0, 0))
                         },
                         new
                         {
                             Id = new Guid("c3d4e5f6-a7b8-9012-cdef-123456789012"),
                             Brand = "Pieces",
                             Category = "Footwear",
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 6, 9, 18, 28, 44, 577, DateTimeKind.Unspecified).AddTicks(9733), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Clean leather sneakers with a minimalist silhouette.",
                             Name = "Leather Sneakers",
                             ProductCode = "SNK-004",
@@ -123,14 +126,14 @@ namespace ProductCatalogue.Api.Migrations
                             Season = "SS25",
                             Status = 0,
                             TargetMarket = "Unisex",
-                            UpdatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 6, 9, 18, 28, 44, 577, DateTimeKind.Unspecified).AddTicks(9733), new TimeSpan(0, 0, 0, 0, 0))
                         },
                         new
                         {
                             Id = new Guid("d4e5f6a7-b8c9-0123-defa-234567890123"),
                             Brand = "Only",
                             Category = "Dresses",
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 6, 9, 18, 28, 44, 577, DateTimeKind.Unspecified).AddTicks(9752), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Light floral dress perfect for warm weather occasions.",
                             Name = "Summer Floral Dress",
                             ProductCode = "DRS-005",
@@ -138,14 +141,14 @@ namespace ProductCatalogue.Api.Migrations
                             Season = "SS25",
                             Status = 0,
                             TargetMarket = "Women",
-                            UpdatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 6, 9, 18, 28, 44, 577, DateTimeKind.Unspecified).AddTicks(9752), new TimeSpan(0, 0, 0, 0, 0))
                         },
                         new
                         {
                             Id = new Guid("e5f6a7b8-c9d0-1234-efab-345678901234"),
                             Brand = "Jack & Jones",
                             Category = "Trousers",
-                            CreatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedAt = new DateTimeOffset(new DateTime(2026, 6, 9, 18, 28, 44, 577, DateTimeKind.Unspecified).AddTicks(9771), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Relaxed cargo joggers with multiple utility pockets.",
                             Name = "Cargo Joggers",
                             ProductCode = "JGR-006",
@@ -153,7 +156,7 @@ namespace ProductCatalogue.Api.Migrations
                             Season = "AW24",
                             Status = 0,
                             TargetMarket = "Men",
-                            UpdatedAt = new DateTimeOffset(new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                            UpdatedAt = new DateTimeOffset(new DateTime(2026, 6, 9, 18, 28, 44, 577, DateTimeKind.Unspecified).AddTicks(9771), new TimeSpan(0, 0, 0, 0, 0))
                         });
                 });
 #pragma warning restore 612, 618
