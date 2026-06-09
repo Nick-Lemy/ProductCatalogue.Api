@@ -1,3 +1,4 @@
+using Mapster;
 using ProductCatalogue.Api.DTOs;
 using ProductCatalogue.Api.Models;
 
@@ -14,13 +15,12 @@ public class ProductService : IProductService
 
     public async Task<Product> CreateAsync(CreateProductDto createProductDto)
     {
-        Product newProduct = new() { Id = _products.Count + 1, Name = createProductDto.Name, Price = createProductDto.Price, Description = createProductDto.Description };
+        Product newProduct = createProductDto.Adapt<Product>();
 
         _products.Add(newProduct);
         await Task.Delay(200);
         return newProduct;
     }
-
 
     public async Task<List<Product>> GetAllAsync()
     {
@@ -40,13 +40,10 @@ public class ProductService : IProductService
         var index = _products.FindIndex(p => p.Id == id);
         if (index == -1) return null;
         var product = _products[index];
-
-        product.Name = updateProductDto.Name ?? product.Name;
-        product.Price = updateProductDto.Price ?? product.Price;
-        product.Description = updateProductDto.Description ?? product.Description;
-
+        updateProductDto.Adapt(product);
         return product;
     }
+
     public async Task<bool> Delete(int id)
     {
         var product = await GetByIdAsync(id);

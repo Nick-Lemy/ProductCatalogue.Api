@@ -1,7 +1,10 @@
+using ProductCatalogue.Api.Mappings;
 using ProductCatalogue.Api.Models;
 using ProductCatalogue.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+MappingConfig.RegisterMappings();
 
 builder.Services.AddControllers();
 
@@ -16,6 +19,7 @@ builder.Services.AddSingleton<IProductService, ProductService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 
 var app = builder.Build();
 
