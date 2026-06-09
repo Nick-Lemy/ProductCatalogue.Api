@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace ProductCatalogue.Api.Models;
 
 public class Product
@@ -16,16 +14,7 @@ public class Product
     public ProductStatus Status { get; set; }
     public ProductReadiness Readiness { get; set; }
 
-    public DateTimeOffset CreatedAt { get; set; }
-    public DateTimeOffset UpdatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 
-
-    public enum ProductStatus
-    {
-        DRAFT, IN_REVIEW, PUBLISHED, ARCHIVED,
-    }
-    public enum ProductReadiness
-    {
-        READY, NOT_READY
-    }
 }
