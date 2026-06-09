@@ -5,8 +5,8 @@ namespace ProductCatalogue.Api.Models;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ProductStatus
 {
-    Draft,
-    InReview,
-    Published,
-    Archived,
+    DRAFT,
+    IN_REVIEW,
+    PUBLISHED,
+    ARCHIVED,
 }

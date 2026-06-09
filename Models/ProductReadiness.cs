@@ -5,6 +5,6 @@ namespace ProductCatalogue.Api.Models;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ProductReadiness
 {
-    Ready,
-    NotReady
+    READY,
+    NOT_READY
 }

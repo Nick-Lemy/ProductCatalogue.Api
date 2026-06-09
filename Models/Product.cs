@@ -11,8 +11,8 @@ public class Product
     public string TargetMarket { get; set; } = string.Empty;
     public string Season { get; set; } = string.Empty;
 
-    public ProductStatus Status { get; set; } = ProductStatus.Draft;
-    public ProductReadiness Readiness { get; set; } = ProductReadiness.NotReady;
+    public ProductStatus Status { get; set; } = ProductStatus.DRAFT;
+    public ProductReadiness Readiness { get; set; } = ProductReadiness.NOT_READY;
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
