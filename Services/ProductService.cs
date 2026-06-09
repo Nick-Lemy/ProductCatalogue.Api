@@ -16,7 +16,7 @@ public class ProductService : IProductService
     public async Task<Product> CreateAsync(CreateProductDto createProductDto)
     {
         Product newProduct = createProductDto.Adapt<Product>();
-
+        newProduct.Id = _products.Count + 1;
         _products.Add(newProduct);
         await Task.Delay(200);
         return newProduct;
