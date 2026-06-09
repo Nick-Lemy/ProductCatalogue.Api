@@ -16,7 +16,6 @@ public class ProductService : IProductService
     public async Task<Product> CreateAsync(CreateProductDto createProductDto)
     {
         Product newProduct = createProductDto.Adapt<Product>();
-        newProduct.Id = _products.Count + 1;
         _products.Add(newProduct);
         await Task.Delay(200);
         return newProduct;
@@ -28,13 +27,13 @@ public class ProductService : IProductService
         return _products;
     }
 
-    public async Task<Product?> GetByIdAsync(int id)
+    public async Task<Product?> GetByIdAsync(Guid id)
     {
         await Task.Delay(200);
         return _products.FirstOrDefault(p => p.Id == id);
     }
 
-    public async Task<Product?> UpdateAsync(int id, UpdateProductDto updateProductDto)
+    public async Task<Product?> UpdateAsync(Guid id, UpdateProductDto updateProductDto)
     {
         await Task.Delay(200);
         var index = _products.FindIndex(p => p.Id == id);
@@ -44,7 +43,7 @@ public class ProductService : IProductService
         return product;
     }
 
-    public async Task<bool> Delete(int id)
+    public async Task<bool> Delete(Guid id)
     {
         var product = await GetByIdAsync(id);
         if (product is null) return false;

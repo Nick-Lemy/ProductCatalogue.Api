@@ -20,7 +20,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddSingleton<List<Product>>(
 [
     new (){
-        Id = 1,
+        Id = Guid.NewGuid(),
         Name = "Classic Oxford Shirt",
         ProductCode = "SHT-001",
         Description = "A timeless Oxford shirt crafted from premium cotton.",
@@ -30,7 +30,7 @@ builder.Services.AddSingleton<List<Product>>(
         Season = "SS25"
        },
     new (){
-        Id = 2,
+        Id = Guid.NewGuid(),
         Name = "Slim Fit Chinos",
         ProductCode = "TRS-002",
         Description = "Modern slim fit chinos with a comfortable stretch fabric.",
@@ -40,7 +40,7 @@ builder.Services.AddSingleton<List<Product>>(
         Season = "SS25"
     },
     new (){
-        Id = 4,
+        Id = Guid.NewGuid(),
         Name = "Leather Sneakers",
         ProductCode = "SNK-004",
         Description = "Clean leather sneakers with a minimalist silhouette.",
@@ -50,7 +50,7 @@ builder.Services.AddSingleton<List<Product>>(
         Season = "SS25"
     },
     new (){
-        Id = 5,
+        Id = Guid.NewGuid(),
         Name = "Summer Floral Dress",
         ProductCode = "DRS-005",
         Description = "Light floral dress perfect for warm weather occasions.",
@@ -60,7 +60,7 @@ builder.Services.AddSingleton<List<Product>>(
         Season = "SS25"
     },
     new (){
-        Id = 6,
+        Id = Guid.NewGuid(),
         Name = "Cargo Joggers",
         ProductCode = "JGR-006",
         Description = "Relaxed cargo joggers with multiple utility pockets.",

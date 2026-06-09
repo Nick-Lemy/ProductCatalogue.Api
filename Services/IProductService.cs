@@ -7,8 +7,8 @@ namespace ProductCatalogue.Api.Services;
 public interface IProductService
 {
     public Task<List<Product>> GetAllAsync();
-    public Task<Product?> GetByIdAsync(int id);
+    public Task<Product?> GetByIdAsync(Guid id);
     public Task<Product> CreateAsync(CreateProductDto createProductDto);
-    public Task<Product?> UpdateAsync(int id, UpdateProductDto updateProductDto);
-    public Task<bool> Delete(int id);
+    public Task<Product?> UpdateAsync(Guid id, UpdateProductDto updateProductDto);
+    public Task<bool> Delete(Guid id);
 }

@@ -2,7 +2,7 @@ namespace ProductCatalogue.Api.Models;
 
 public class Product
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string ProductCode { get; set; } = string.Empty;
@@ -11,8 +11,8 @@ public class Product
     public string TargetMarket { get; set; } = string.Empty;
     public string Season { get; set; } = string.Empty;
 
-    public ProductStatus Status { get; set; }
-    public ProductReadiness Readiness { get; set; }
+    public ProductStatus Status { get; set; } = ProductStatus.Draft;
+    public ProductReadiness Readiness { get; set; } = ProductReadiness.NotReady;
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;

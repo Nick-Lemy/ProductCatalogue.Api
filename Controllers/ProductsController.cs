@@ -24,7 +24,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<Product>> GetById(int id)
+    public async Task<ActionResult<Product>> GetById(Guid id)
     {
         Product? product = await _productService.GetByIdAsync(id);
         return product is null ? NotFound() : Ok(product);
@@ -40,14 +40,14 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<Product>> Update(int id, [FromBody] UpdateProductDto updateProductDto)
+    public async Task<ActionResult<Product>> Update(Guid id, [FromBody] UpdateProductDto updateProductDto)
     {
         Product? updatedProduct = await _productService.UpdateAsync(id, updateProductDto);
         return updatedProduct is null ? NotFound() : Ok(updatedProduct);
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(int id)
+    public async Task<ActionResult> Delete(Guid id)
     {
         bool isDeleted = await _productService.Delete(id);
         if (!isDeleted) BadRequest();
