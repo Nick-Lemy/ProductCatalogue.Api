@@ -1,0 +1,67 @@
+using Mapster;
+using Microsoft.EntityFrameworkCore;
+using ProductCatalogue.Api.Data;
+using ProductCatalogue.Api.DTOs;
+using ProductCatalogue.Api.Models;
+
+namespace ProductCatalogue.Api.Services;
+
+public class VariantService : IVariantService
+{
+    private readonly AppDbContext _context;
+
+    public VariantService(AppDbContext context)
+    {
+        _context = context;
+    }
+    public async Task<Variant> CreateAsync(CreateVariantDto createVariantDto)
+    {
+        Variant newVariant = createVariantDto.Adapt<Variant>();
+        _context.Variants.Add(newVariant);
+        await _context.SaveChangesAsync();
+        return newVariant;
+    }
+
+
+    public async Task<List<Variant>> GetAllAsync()
+    {
+        List<Variant> variants = await _context.Variants.ToListAsync();
+        return variants;
+    }
+
+    public async Task<List<Variant>> GetAllByProdutIdAsync(Guid productId)
+    {
+        List<Variant> variants = await _context.Variants
+            .Where(v => v.ProductId == productId)
+            .ToListAsync();
+
+        return variants;
+    }
+
+    public async Task<Variant?> GetByIdAsync(Guid id)
+    {
+        Variant? variant = await _context.Variants.FindAsync(id);
+        return variant;
+    }
+
+    public async Task<Variant?> UpdateAsync(Guid id, UpdateVariantDto updateVariantDto)
+    {
+        Variant? variant = await _context.Variants.FindAsync(id);
+        if (variant is null) return null;
+
+        updateVariantDto.Adapt(variant);
+        variant.UpdatedAt = DateTimeOffset.UtcNow;
+        await _context.SaveChangesAsync();
+        return variant;
+
+    }
+    public async Task<bool> DeleteAsync(Guid id)
+    {
+        Variant? variant = await _context.Variants.FindAsync(id);
+        if (variant is null) return false;
+
+        _context.Variants.Remove(variant);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+}

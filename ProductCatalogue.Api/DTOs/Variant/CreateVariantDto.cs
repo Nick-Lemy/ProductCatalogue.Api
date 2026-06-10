@@ -1,27 +1,26 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using ProductCatalogue.Api.Models;
 
-namespace ProductCatalogue.Api.Models;
+namespace ProductCatalogue.Api.DTOs;
 
-public class Variant
+public class CreateVariantDto
 {
-    [Key]
-    public Guid Id { get; set; } = Guid.NewGuid();
-
-    [ForeignKey(nameof(Product))]
+    [Required]
     public Guid ProductId { get; set; }
-    public Product Product { get; set; } = null!;
 
+    [Required]
     [MaxLength(100)]
     public string Name { get; set; } = string.Empty;
 
+    [Required]
     [MaxLength(50)]
     public string VariantCode { get; set; } = string.Empty;
 
+    [Required]
     [MaxLength(50)]
     public string Colour { get; set; } = string.Empty;
 
+    [Required]
     [MaxLength(3)]
     public string Size { get; set; } = string.Empty;
 
@@ -30,8 +29,4 @@ public class Variant
 
     [MaxLength(100)]
     public string? Barcode { get; set; }
-
-    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
-    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
-
 }

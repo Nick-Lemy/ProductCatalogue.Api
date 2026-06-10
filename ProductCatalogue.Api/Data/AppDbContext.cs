@@ -90,6 +90,8 @@ public class AppDbContext : DbContext
                 Size = "S",
                 Material = "100% Cotton",
                 Barcode = "5901234123457",
+                CreatedAt = seededAt,
+                UpdatedAt = seededAt,
             },
             new(){
                 Id = Guid.Parse("v2"),
@@ -100,6 +102,8 @@ public class AppDbContext : DbContext
                 Size = "M",
                 Material = "100% Cotton",
                 Barcode = "5901234123458",
+                CreatedAt = seededAt,
+                UpdatedAt = seededAt,
             },
             new(){
                 Id = Guid.Parse("v3"),
@@ -109,6 +113,8 @@ public class AppDbContext : DbContext
                 Colour = "Navy",
                 Size = "M",
                 Material = "100% Cotton",
+                CreatedAt = seededAt,
+                UpdatedAt = seededAt,
             },
 
         ];

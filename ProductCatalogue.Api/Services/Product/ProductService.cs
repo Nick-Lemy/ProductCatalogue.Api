@@ -45,7 +45,6 @@ public class ProductService : IProductService
 
     public async Task<Product?> UpdateAsync(Guid id, UpdateProductDto updateProductDto)
     {
-        await Task.Delay(200);
         var product = await _context.Products.FindAsync(id);
         if (product is null) return null;
         updateProductDto.Adapt(product);
