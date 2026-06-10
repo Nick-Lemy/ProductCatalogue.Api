@@ -12,12 +12,12 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        var seededAt = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero); // fixed date
+        var seededAt = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
         modelBuilder.Entity<Product>().HasData(
             new Product
             {
-                Id = Guid.Parse("a1b2c3d4-e5f6-7890-abcd-ef1234567890"), // fixed GUIDs!
+                Id = Guid.Parse("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
                 Name = "Classic Oxford Shirt",
                 ProductCode = "SHT-001",
                 Description = "A timeless Oxford shirt crafted from premium cotton.",

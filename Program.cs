@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ProductCatalogue.Api.Data;
 using ProductCatalogue.Api.Mappings;
-using ProductCatalogue.Api.Models;
 using ProductCatalogue.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,7 +30,6 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
