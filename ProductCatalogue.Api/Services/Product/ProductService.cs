@@ -54,7 +54,7 @@ public class ProductService : IProductService
         return product;
     }
 
-    public async Task<bool> Delete(Guid id)
+    public async Task<bool> DeleteAsync(Guid id)
     {
         var product = await GetByIdAsync(id);
         if (product is null) return false;

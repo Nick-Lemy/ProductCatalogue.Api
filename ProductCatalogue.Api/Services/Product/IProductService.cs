@@ -10,5 +10,5 @@ public interface IProductService
     public Task<Product?> GetByIdAsync(Guid id);
     public Task<Product> CreateAsync(CreateProductDto createProductDto);
     public Task<Product?> UpdateAsync(Guid id, UpdateProductDto updateProductDto);
-    public Task<bool> Delete(Guid id);
+    public Task<bool> DeleteAsync(Guid id);
 }
