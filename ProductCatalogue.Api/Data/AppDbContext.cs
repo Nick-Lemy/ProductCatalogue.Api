@@ -14,6 +14,7 @@ public class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         var seededAt = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
         Product[] products = [ new()
             {
                 Id = Guid.Parse("a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
