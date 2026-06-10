@@ -9,6 +9,6 @@ public static class MappingConfig
     public static void RegisterMappings()
     {
         TypeAdapterConfig<CreateProductDto, Product>.NewConfig()
-            .Ignore(dest => dest.Id);
+            .Ignore(dest => dest.Id).IgnoreNullValues(true);
     }
 }

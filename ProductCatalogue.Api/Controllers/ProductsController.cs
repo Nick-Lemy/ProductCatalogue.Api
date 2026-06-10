@@ -52,7 +52,6 @@ public class ProductsController : ControllerBase
     public async Task<ActionResult> Delete(Guid id)
     {
         bool isDeleted = await _productService.DeleteAsync(id);
-        if (!isDeleted) BadRequest();
-        return NoContent();
+        return isDeleted ? NoContent() : NotFound();
     }
 }
