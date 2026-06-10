@@ -13,7 +13,7 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        var seededAt = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        DateTimeOffset seededAt = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
         Product[] products = [ new()
             {

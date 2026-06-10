@@ -23,16 +23,16 @@ public class VariantService : IVariantService
     }
 
 
-    public async Task<List<Variant>> GetAllAsync()
+    public async Task<List<Variant>> GetAllAsync(VariantQueryDto query)
     {
-        List<Variant> variants = await _context.Variants.ToListAsync();
-        return variants;
-    }
-
-    public async Task<List<Variant>> GetAllByProdutIdAsync(Guid productId)
-    {
-        List<Variant> variants = await _context.Variants
-            .Where(v => v.ProductId == productId)
+        var variants = await _context.Variants
+            .Where(v => query.ProductId == null || v.ProductId == query.ProductId)
+            .Where(v => query.Name == null || v.Name.Contains(query.Name))
+            .Where(v => query.VariantCode == null || v.VariantCode == query.VariantCode)
+            .Where(v => query.Colour == null || v.Colour == query.Colour)
+            .Where(v => query.Size == null || v.Size == query.Size)
+            .Where(v => query.Material == null || v.Material == query.Material)
+            .Where(v => query.Barcode == null || v.Barcode == query.Barcode)
             .ToListAsync();
 
         return variants;
