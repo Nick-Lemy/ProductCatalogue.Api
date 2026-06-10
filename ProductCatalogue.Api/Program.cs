@@ -24,6 +24,8 @@ builder.Services.AddDbContext<AppDbContext>(
 );
 
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IVariantService, VariantService>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
