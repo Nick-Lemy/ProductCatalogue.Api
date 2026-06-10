@@ -23,9 +23,17 @@ public class ProductService : IProductService
         return newProduct;
     }
 
-    public async Task<List<Product>> GetAllAsync()
+    public async Task<List<Product>> GetAllAsync(ProductQueryDto query)
     {
-        List<Product> products = await _context.Products.ToListAsync();
+        var products = await _context.Products
+            .Where(p => query.Name == null || p.Name.Contains(query.Name))
+            .Where(p => query.Brand == null || p.Brand == query.Brand)
+            .Where(p => query.Category == null || p.Category == query.Category)
+            .Where(p => query.Status == null || p.Status.ToString() == query.Status)
+            .Where(p => query.Readiness == null || p.Readiness.ToString() == query.Readiness)
+            .Where(p => query.ProductCode == null || p.ProductCode == query.ProductCode)
+            .ToListAsync();
+
         return products;
     }
 

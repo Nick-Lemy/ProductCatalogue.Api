@@ -17,9 +17,11 @@ public class ProductsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<Product>>> GetAll()
+    public async Task<ActionResult<List<Product>>> GetAll(
+        [FromQuery] ProductQueryDto query
+        )
     {
-        List<Product> products = await _productService.GetAllAsync();
+        List<Product> products = await _productService.GetAllAsync(query);
         return Ok(products);
     }
 
