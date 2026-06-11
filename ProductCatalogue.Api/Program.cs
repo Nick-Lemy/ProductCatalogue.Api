@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ProductCatalogue.Api.Data;
+using ProductCatalogue.Api.Exceptions;
 using ProductCatalogue.Api.Mappings;
 using ProductCatalogue.Api.Services;
 
@@ -22,6 +23,9 @@ builder.Services.AddDbContext<AppDbContext>(
     options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")
     )
 );
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IVariantService, VariantService>();
