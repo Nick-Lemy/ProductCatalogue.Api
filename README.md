@@ -42,7 +42,7 @@ dotnet ef database update
 dotnet run
 ```
 
-API: `http://localhost:5093` — Swagger UI: `http://localhost:5093/swagger`
+API: `http://localhost:5093` - Swagger UI: `http://localhost:5093/swagger`
 
 ## Run tests
 
