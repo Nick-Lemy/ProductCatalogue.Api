@@ -10,18 +10,18 @@ public class VariantService(AppDbContext context) : IVariantService
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<Variant> CreateAsync(CreateVariantDto createVariantDto)
+    public async Task<VariantReponseDto> CreateAsync(CreateVariantDto createVariantDto)
     {
         Variant newVariant = createVariantDto.Adapt<Variant>();
         _context.Variants.Add(newVariant);
         await _context.SaveChangesAsync();
-        return newVariant;
+        return newVariant.Adapt<VariantReponseDto>();
     }
 
 
-    public async Task<List<Variant>> GetAllAsync(VariantQueryDto query)
+    public async Task<List<VariantReponseDto>> GetAllAsync(VariantQueryDto query)
     {
-        var variants = await _context.Variants
+        var variants = await _context.Variants.AsNoTracking()
             .Where(v => query.ProductId == null || v.ProductId == query.ProductId)
             .Where(v => query.Name == null || v.Name.Contains(query.Name, StringComparison.CurrentCultureIgnoreCase))
             .Where(v => query.VariantCode == null || v.VariantCode == query.VariantCode)
@@ -31,16 +31,16 @@ public class VariantService(AppDbContext context) : IVariantService
             .Where(v => query.Barcode == null || v.Barcode == query.Barcode)
             .ToListAsync();
 
-        return variants;
+        return variants.Adapt<List<VariantReponseDto>>();
     }
 
-    public async Task<Variant?> GetByIdAsync(Guid id)
+    public async Task<VariantReponseDto?> GetByIdAsync(Guid id)
     {
-        Variant? variant = await _context.Variants.FindAsync(id);
-        return variant;
+        Variant? variant = await _context.Variants.AsNoTracking().FirstOrDefaultAsync(v => v.Id == id);
+        return variant?.Adapt<VariantReponseDto>();
     }
 
-    public async Task<Variant?> UpdateAsync(Guid id, UpdateVariantDto updateVariantDto)
+    public async Task<VariantReponseDto?> UpdateAsync(Guid id, UpdateVariantDto updateVariantDto)
     {
         Variant? variant = await _context.Variants.FindAsync(id);
         if (variant is null) return null;
@@ -48,8 +48,7 @@ public class VariantService(AppDbContext context) : IVariantService
         updateVariantDto.Adapt(variant);
         variant.UpdatedAt = DateTimeOffset.UtcNow;
         await _context.SaveChangesAsync();
-        return variant;
-
+        return variant.Adapt<VariantReponseDto>();
     }
     public async Task<bool> DeleteAsync(Guid id)
     {

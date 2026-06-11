@@ -10,15 +10,15 @@ public class ProductService(AppDbContext context) : IProductService
 {
     private readonly AppDbContext _context = context;
 
-    public async Task<Product> CreateAsync(CreateProductDto createProductDto)
+    public async Task<ProductResponseDto> CreateAsync(CreateProductDto createProductDto)
     {
         Product newProduct = createProductDto.Adapt<Product>();
         _context.Products.Add(newProduct);
         await _context.SaveChangesAsync();
-        return newProduct;
+        return newProduct.Adapt<ProductResponseDto>();
     }
 
-    public async Task<List<Product>> GetAllAsync(ProductQueryDto query)
+    public async Task<List<ProductResponseDto>> GetAllAsync(ProductQueryDto query)
     {
         var products = await _context.Products
             .Where(p => query.Name == null || p.Name.Contains(query.Name, StringComparison.CurrentCultureIgnoreCase))
@@ -29,28 +29,28 @@ public class ProductService(AppDbContext context) : IProductService
             .Where(p => query.ProductCode == null || p.ProductCode == query.ProductCode)
             .ToListAsync();
 
-        return products;
+        return products.Adapt<List<ProductResponseDto>>();
     }
 
-    public async Task<Product?> GetByIdAsync(Guid id)
+    public async Task<ProductResponseDto?> GetByIdAsync(Guid id)
     {
         Product? product = await _context.Products.FindAsync(id);
-        return product;
+        return product?.Adapt<ProductResponseDto>();
     }
 
-    public async Task<Product?> UpdateAsync(Guid id, UpdateProductDto updateProductDto)
+    public async Task<ProductResponseDto?> UpdateAsync(Guid id, UpdateProductDto updateProductDto)
     {
         var product = await _context.Products.FindAsync(id);
         if (product is null) return null;
         updateProductDto.Adapt(product);
         product.UpdatedAt = DateTimeOffset.UtcNow;
         await _context.SaveChangesAsync();
-        return product;
+        return product.Adapt<ProductResponseDto>();
     }
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        var product = await GetByIdAsync(id);
+        var product = await _context.Products.FindAsync(id);
         if (product is null) return false;
 
         _context.Products.Remove(product);
