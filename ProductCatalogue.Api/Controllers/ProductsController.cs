@@ -16,15 +16,13 @@ public class ProductsController(IProductService productService) : ControllerBase
         [FromQuery] ProductQueryDto query
         )
     {
-        List<ProductResponseDto> products = await _productService.GetAllAsync(query);
-        return Ok(products);
+        return await _productService.GetAllAsync(query);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<ProductResponseDto>> GetById(Guid id)
     {
-        ProductResponseDto? product = await _productService.GetByIdAsync(id);
-        return product is null ? NotFound() : Ok(product);
+        return await _productService.GetByIdAsync(id);
     }
 
     [HttpPost]
@@ -39,14 +37,13 @@ public class ProductsController(IProductService productService) : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult<ProductResponseDto>> Update(Guid id, [FromBody] UpdateProductDto updateProductDto)
     {
-        ProductResponseDto? updatedProduct = await _productService.UpdateAsync(id, updateProductDto);
-        return updatedProduct is null ? NotFound() : Ok(updatedProduct);
+        return await _productService.UpdateAsync(id, updateProductDto);
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        bool isDeleted = await _productService.DeleteAsync(id);
-        return isDeleted ? NoContent() : NotFound();
+        await _productService.DeleteAsync(id);
+        return NoContent();
     }
 }

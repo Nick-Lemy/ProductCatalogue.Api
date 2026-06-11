@@ -21,15 +21,13 @@ public class VariantController(IVariantService variantService) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<VariantReponseDto>>> GetAll([FromQuery] VariantQueryDto query)
     {
-        List<VariantReponseDto> variants = await _variantService.GetAllAsync(query);
-        return Ok(variants);
+        return await _variantService.GetAllAsync(query);
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<VariantReponseDto>> GetById(Guid id)
     {
-        VariantReponseDto? variant = await _variantService.GetByIdAsync(id);
-        return variant is null ? NotFound() : Ok(variant);
+        return await _variantService.GetByIdAsync(id);
     }
 
     [HttpPut("{id}")]
@@ -38,14 +36,13 @@ public class VariantController(IVariantService variantService) : ControllerBase
         [FromBody] UpdateVariantDto updateVariantDto
         )
     {
-        VariantReponseDto? updatedVariant = await _variantService.UpdateAsync(id, updateVariantDto);
-        return updatedVariant is null ? NotFound() : Ok(updatedVariant);
+        return await _variantService.UpdateAsync(id, updateVariantDto);
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(Guid id)
+    public async Task<IActionResult> Delete(Guid id)
     {
-        bool isDeleted = await _variantService.DeleteAsync(id);
-        return !isDeleted ? NotFound() : NoContent();
+        await _variantService.DeleteAsync(id);
+        return NoContent();
     }
 }

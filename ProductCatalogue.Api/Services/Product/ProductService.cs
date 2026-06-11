@@ -22,7 +22,7 @@ public class ProductService(AppDbContext context) : IProductService
     public async Task<List<ProductResponseDto>> GetAllAsync(ProductQueryDto query)
     {
         List<Product> products = await _context.Products.AsNoTracking()
-            .Where(p => query.Name == null || p.Name.Contains(query.Name, StringComparison.CurrentCultureIgnoreCase))
+            .Where(p => query.Name == null || EF.Functions.ILike(p.Name, $"%{query.Name}%"))
             .Where(p => query.Brand == null || p.Brand == query.Brand)
             .Where(p => query.Category == null || p.Category == query.Category)
             .Where(p => query.Status == null || p.Status.ToString() == query.Status)
