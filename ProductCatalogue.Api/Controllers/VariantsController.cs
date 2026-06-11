@@ -3,15 +3,13 @@ using ProductCatalogue.Api.DTOs;
 using ProductCatalogue.Api.Models;
 using ProductCatalogue.Api.Services;
 
+namespace ProductCatalogue.Api.Controllers;
+
 [ApiController]
 [Route("variants")]
-public class VariantController : ControllerBase
+public class VariantController(IVariantService variantService) : ControllerBase
 {
-    private readonly IVariantService _variantService;
-    public VariantController(IVariantService variantService)
-    {
-        _variantService = variantService;
-    }
+    private readonly IVariantService _variantService = variantService;
 
     [HttpPost]
     public async Task<ActionResult<Variant>> Create([FromBody] CreateVariantDto createVariantDto)

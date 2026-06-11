@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using ProductCatalogue.Api.Models;
 
 namespace ProductCatalogue.Api.Models;
 
@@ -22,7 +21,7 @@ public class Variant
     [MaxLength(50)]
     public string Colour { get; set; } = string.Empty;
 
-    [MaxLength(3)]
+    [MaxLength(4)]
     public string Size { get; set; } = string.Empty;
 
     [MaxLength(100)]

@@ -112,6 +112,7 @@ public class AppDbContext : DbContext
             new() { Id = Guid.Parse("44444444-4444-4444-4444-444444444447"), ProductId = products[4].Id, Name = "Olive / S", VariantCode = "JGR-006-OLV-S", Colour = "Olive", Size = "S", Material = "100% Cotton", CreatedAt = seededAt, UpdatedAt = seededAt },
             new() { Id = Guid.Parse("44444444-4444-4444-4444-444444444448"), ProductId = products[4].Id, Name = "Olive / M", VariantCode = "JGR-006-OLV-M", Colour = "Olive", Size = "M", Material = "100% Cotton", CreatedAt = seededAt, UpdatedAt = seededAt },
 ];
+
         modelBuilder.Entity<Product>().HasData(products);
         modelBuilder.Entity<Variant>().HasData(variants);
     }

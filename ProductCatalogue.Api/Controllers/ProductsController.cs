@@ -7,14 +7,9 @@ namespace ProductCatalogue.Api.Controllers;
 
 [ApiController]
 [Route("products")]
-public class ProductsController : ControllerBase
+public class ProductsController(IProductService productService) : ControllerBase
 {
-    private readonly IProductService _productService;
-
-    public ProductsController(IProductService productService)
-    {
-        _productService = productService;
-    }
+    private readonly IProductService _productService = productService;
 
     [HttpGet]
     public async Task<ActionResult<List<Product>>> GetAll(

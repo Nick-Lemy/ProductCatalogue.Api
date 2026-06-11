@@ -6,14 +6,10 @@ using ProductCatalogue.Api.Models;
 
 namespace ProductCatalogue.Api.Services;
 
-public class VariantService : IVariantService
+public class VariantService(AppDbContext context) : IVariantService
 {
-    private readonly AppDbContext _context;
+    private readonly AppDbContext _context = context;
 
-    public VariantService(AppDbContext context)
-    {
-        _context = context;
-    }
     public async Task<Variant> CreateAsync(CreateVariantDto createVariantDto)
     {
         Variant newVariant = createVariantDto.Adapt<Variant>();
@@ -27,7 +23,7 @@ public class VariantService : IVariantService
     {
         var variants = await _context.Variants
             .Where(v => query.ProductId == null || v.ProductId == query.ProductId)
-            .Where(v => query.Name == null || v.Name.Contains(query.Name))
+            .Where(v => query.Name == null || v.Name.Contains(query.Name, StringComparison.CurrentCultureIgnoreCase))
             .Where(v => query.VariantCode == null || v.VariantCode == query.VariantCode)
             .Where(v => query.Colour == null || v.Colour == query.Colour)
             .Where(v => query.Size == null || v.Size == query.Size)

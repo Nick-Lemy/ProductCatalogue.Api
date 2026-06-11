@@ -6,14 +6,9 @@ using ProductCatalogue.Api.Models;
 
 namespace ProductCatalogue.Api.Services;
 
-public class ProductService : IProductService
+public class ProductService(AppDbContext context) : IProductService
 {
-    private readonly AppDbContext _context;
-
-    public ProductService(AppDbContext context)
-    {
-        _context = context;
-    }
+    private readonly AppDbContext _context = context;
 
     public async Task<Product> CreateAsync(CreateProductDto createProductDto)
     {
@@ -26,7 +21,7 @@ public class ProductService : IProductService
     public async Task<List<Product>> GetAllAsync(ProductQueryDto query)
     {
         var products = await _context.Products
-            .Where(p => query.Name == null || p.Name.Contains(query.Name))
+            .Where(p => query.Name == null || p.Name.Contains(query.Name, StringComparison.CurrentCultureIgnoreCase))
             .Where(p => query.Brand == null || p.Brand == query.Brand)
             .Where(p => query.Category == null || p.Category == query.Category)
             .Where(p => query.Status == null || p.Status.ToString() == query.Status)
