@@ -39,7 +39,8 @@ public class ProductsController(IProductService productService) : ControllerBase
     [SwaggerOperation(
         Summary = "Change product status",
         Description = "Change status of a product by its id")]
-    [SwaggerResponse(200, "Product fetched successfully", typeof(ProductResponseDto))]
+    [SwaggerResponse(200, "Status changed successfully", typeof(ProductResponseDto))]
+    [SwaggerResponse(400, "Invalide status value")]
     [SwaggerResponse(404, "Product not found")]
     public async Task<ActionResult<ProductResponseDto>> ChangeStatus(
         Guid id,
