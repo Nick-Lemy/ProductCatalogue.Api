@@ -13,7 +13,7 @@ public class VariantService(
 {
     private readonly AppDbContext _context = context;
     private readonly ILogger<VariantService> _logger = logger;
-    public async Task<VariantReponseDto> CreateAsync(CreateVariantDto createVariantDto)
+    public async Task<VariantResponseDto> CreateAsync(CreateVariantDto createVariantDto)
     {
         _logger.LogInformation("[Variant] Creating variant with name {Name} for product {ProductId}", createVariantDto.Name, createVariantDto.ProductId);
 
@@ -39,11 +39,11 @@ public class VariantService(
         _context.Variants.Add(newVariant);
         await _context.SaveChangesAsync();
         _logger.LogInformation("[Variant] Variant {VariantId} created successfully for product {ProductId}", newVariant.Id, createVariantDto.ProductId);
-        return newVariant.Adapt<VariantReponseDto>();
+        return newVariant.Adapt<VariantResponseDto>();
     }
 
 
-    public async Task<List<VariantReponseDto>> GetAllAsync(VariantQueryDto query)
+    public async Task<List<VariantResponseDto>> GetAllAsync(VariantQueryDto query)
     {
         _logger.LogInformation("[Variant] Fetching variants with query {@Query}", query);
         var variants = await _context.Variants.AsNoTracking()
@@ -57,10 +57,10 @@ public class VariantService(
             .ToListAsync();
 
         _logger.LogInformation("[Variant] Fetched {Count} variants", variants.Count);
-        return variants.Adapt<List<VariantReponseDto>>();
+        return variants.Adapt<List<VariantResponseDto>>();
     }
 
-    public async Task<VariantReponseDto> GetByIdAsync(Guid id)
+    public async Task<VariantResponseDto> GetByIdAsync(Guid id)
     {
         _logger.LogInformation("[Variant] Fetching variant with id {Id}", id);
         Variant? variant = await _context.Variants.AsNoTracking().FirstOrDefaultAsync(v => v.Id == id);
@@ -68,10 +68,10 @@ public class VariantService(
             throw new NotFoundException($"Variant with id {id} not found");
 
         _logger.LogInformation("[Variant] Variant fetched successfully with id {Id}", id);
-        return variant.Adapt<VariantReponseDto>();
+        return variant.Adapt<VariantResponseDto>();
     }
 
-    public async Task<VariantReponseDto> UpdateAsync(Guid id, UpdateVariantDto updateVariantDto)
+    public async Task<VariantResponseDto> UpdateAsync(Guid id, UpdateVariantDto updateVariantDto)
     {
         _logger.LogInformation("[Variant] Updating variant with id {Id}", id);
 
@@ -107,7 +107,7 @@ public class VariantService(
         variant.UpdatedAt = DateTimeOffset.UtcNow;
         await _context.SaveChangesAsync();
         _logger.LogInformation("[Variant] Updated variant with id {Id}", id);
-        return variant.Adapt<VariantReponseDto>();
+        return variant.Adapt<VariantResponseDto>();
     }
     public async Task DeleteAsync(Guid id)
     {

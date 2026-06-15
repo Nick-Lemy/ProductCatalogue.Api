@@ -1,6 +1,6 @@
 namespace ProductCatalogue.Api.DTOs;
 
-public class VariantReponseDto
+public class VariantResponseDto
 {
     public Guid Id { get; init; }
     public Guid ProductId { get; init; }

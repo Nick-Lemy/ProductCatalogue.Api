@@ -16,11 +16,11 @@ public class VariantController(IVariantService variantService) : ControllerBase
     [SwaggerOperation(
         Summary = "Create variant",
         Description = "Creates a new variant with the provided details.")]
-    [SwaggerResponse(201, "Variant created successfully", typeof(VariantReponseDto))]
+    [SwaggerResponse(201, "Variant created successfully", typeof(VariantResponseDto))]
     [SwaggerResponse(400, "Invalid variant data")]
-    public async Task<ActionResult<VariantReponseDto>> Create([FromBody] CreateVariantDto createVariantDto)
+    public async Task<ActionResult<VariantResponseDto>> Create([FromBody] CreateVariantDto createVariantDto)
     {
-        VariantReponseDto newVariant = await _variantService.CreateAsync(createVariantDto);
+        VariantResponseDto newVariant = await _variantService.CreateAsync(createVariantDto);
         return CreatedAtAction(nameof(GetById), new { Id = newVariant.Id }, newVariant);
     }
 
@@ -28,8 +28,8 @@ public class VariantController(IVariantService variantService) : ControllerBase
     [SwaggerOperation(
         Summary = "Get all variants",
         Description = "Fetches a list of variants based on optional query parameters for filtering.")]
-    [SwaggerResponse(200, "List of variants fetched successfully", typeof(List<VariantReponseDto>))]
-    public async Task<ActionResult<List<VariantReponseDto>>> GetAll([FromQuery] VariantQueryDto query)
+    [SwaggerResponse(200, "List of variants fetched successfully", typeof(List<VariantResponseDto>))]
+    public async Task<ActionResult<List<VariantResponseDto>>> GetAll([FromQuery] VariantQueryDto query)
     {
         return await _variantService.GetAllAsync(query);
     }
@@ -38,9 +38,9 @@ public class VariantController(IVariantService variantService) : ControllerBase
     [SwaggerOperation(
         Summary = "Get variant by ID",
         Description = "Fetches a variant by its id.")]
-    [SwaggerResponse(200, "Variant fetched successfully", typeof(VariantReponseDto))]
+    [SwaggerResponse(200, "Variant fetched successfully", typeof(VariantResponseDto))]
     [SwaggerResponse(404, "Variant not found")]
-    public async Task<ActionResult<VariantReponseDto>> GetById(Guid id)
+    public async Task<ActionResult<VariantResponseDto>> GetById(Guid id)
     {
         return await _variantService.GetByIdAsync(id);
     }
@@ -49,9 +49,9 @@ public class VariantController(IVariantService variantService) : ControllerBase
     [SwaggerOperation(
         Summary = "Update variant",
         Description = "Updates an existing variant with the provided details.")]
-    [SwaggerResponse(200, "Variant updated successfully", typeof(VariantReponseDto))]
+    [SwaggerResponse(200, "Variant updated successfully", typeof(VariantResponseDto))]
     [SwaggerResponse(404, "Variant not found")]
-    public async Task<ActionResult<VariantReponseDto>> Update(
+    public async Task<ActionResult<VariantResponseDto>> Update(
         Guid id,
         [FromBody] UpdateVariantDto updateVariantDto
         )
