@@ -4,20 +4,20 @@ namespace ProductCatalogue.Api.DTOs;
 
 public class ProductResponseDto
 {
-    public Guid Id { get; private set; }
+    public Guid Id { get; init; }
 
-    public string Name { get; private set; } = string.Empty;
-    public string Description { get; private set; } = string.Empty;
-    public string ProductCode { get; private set; } = string.Empty;
-    public string Brand { get; private set; } = string.Empty;
-    public string Category { get; private set; } = string.Empty;
-    public string TargetMarket { get; private set; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
+    public string Description { get; init; } = string.Empty;
+    public string ProductCode { get; init; } = string.Empty;
+    public string Brand { get; init; } = string.Empty;
+    public string Category { get; init; } = string.Empty;
+    public string TargetMarket { get; init; } = string.Empty;
 
-    public string Season { get; private set; } = string.Empty;
-    public ProductStatus Status { get; private set; }
-    public ProductReadiness Readiness { get; private set; }
+    public string Season { get; init; } = string.Empty;
+    public ProductStatus Status { get; init; }
+    public ProductReadiness Readiness { get; init; }
 
-    public DateTimeOffset CreatedAt { get; private set; }
-    public DateTimeOffset UpdatedAt { get; private set; }
+    public DateTimeOffset CreatedAt { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
 
 }

@@ -2,15 +2,15 @@ namespace ProductCatalogue.Api.DTOs;
 
 public class VariantReponseDto
 {
-    public Guid Id { get; private set; }
-    public Guid ProductId { get; private set; }
-    public string Name { get; private set; } = null!;
-    public string VariantCode { get; private set; } = null!;
-    public string Colour { get; private set; } = null!;
-    public string Size { get; private set; } = null!;
-    public string Material { get; private set; } = null!;
-    public string? Barcode { get; private set; }
-    public DateTimeOffset CreatedAt { get; private set; }
-    public DateTimeOffset UpdatedAt { get; private set; }
+    public Guid Id { get; init; }
+    public Guid ProductId { get; init; }
+    public string Name { get; init; } = null!;
+    public string VariantCode { get; init; } = null!;
+    public string Colour { get; init; } = null!;
+    public string Size { get; init; } = null!;
+    public string Material { get; init; } = null!;
+    public string? Barcode { get; init; }
+    public DateTimeOffset CreatedAt { get; init; }
+    public DateTimeOffset UpdatedAt { get; init; }
 
 }
