@@ -17,6 +17,12 @@ public class ProductService(
     public async Task<ProductResponseDto> CreateAsync(CreateProductDto createProductDto)
     {
         _logger.LogInformation("[Product] Creating product with name {Name}", createProductDto.Name);
+        Product? productWithSameCode = await _context.Products.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.ProductCode == createProductDto.ProductCode);
+
+        if (productWithSameCode is not null)
+            throw new ConflictException($"Product with code {createProductDto.ProductCode} already exists");
+
         Product newProduct = createProductDto.Adapt<Product>();
         _context.Products.Add(newProduct);
         await _context.SaveChangesAsync();
@@ -60,6 +66,11 @@ public class ProductService(
         if (product is null)
             throw new NotFoundException($"Product with id {id} not found");
 
+        if (product.Status == changeStatusDto.Status)
+            throw new ConflictException($"Product with id {id} already has status {changeStatusDto.Status}");
+
+        if (changeStatusDto.Status == ProductStatus.PUBLISHED && product.Readiness == ProductReadiness.NOT_READY)
+            throw new ConflictException("Product must be ready before publishing");
 
         product.Status = changeStatusDto.Status;
         await _context.SaveChangesAsync();
@@ -73,6 +84,15 @@ public class ProductService(
 
         if (product is null)
             throw new NotFoundException($"Product with id {id} not found");
+
+        if (updateProductDto.ProductCode is not null && product.ProductCode != updateProductDto.ProductCode)
+        {
+            Product? productWithSameCode = await _context.Products.AsNoTracking()
+                .FirstOrDefaultAsync(p => p.ProductCode == updateProductDto.ProductCode && p.Id != id);
+
+            if (productWithSameCode is not null)
+                throw new ConflictException($"Product with code {updateProductDto.ProductCode} already exists");
+        }
 
         updateProductDto.Adapt(product);
         product.UpdatedAt = DateTimeOffset.UtcNow;
