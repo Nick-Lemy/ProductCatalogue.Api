@@ -53,6 +53,16 @@ public class ProductService(
         return product.Adapt<ProductResponseDto>();
     }
 
+    public async Task<ProductResponseDto> ChangeStatusAsync(Guid id, ChangeStatusDto changeStatusDto)
+    {
+        Product? product = await _context.Products.FindAsync(id);
+        if (product is null)
+            throw new NotFoundException($"Product with id {id} not found");
+
+        product.Status = changeStatusDto.Status;
+        await _context.SaveChangesAsync();
+        return product.Adapt<ProductResponseDto>();
+    }
     public async Task<ProductResponseDto> UpdateAsync(Guid id, UpdateProductDto updateProductDto)
     {
         _logger.LogInformation("[Product] Updating product with id {Id}", id);
@@ -81,4 +91,5 @@ public class ProductService(
         await _context.SaveChangesAsync();
         _logger.LogInformation("[Product] Deleted product with id {Id}", id);
     }
+
 }

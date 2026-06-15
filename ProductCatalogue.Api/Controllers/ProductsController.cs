@@ -35,6 +35,19 @@ public class ProductsController(IProductService productService) : ControllerBase
         return await _productService.GetByIdAsync(id);
     }
 
+    [HttpPatch("{id}/change-status")]
+    [SwaggerOperation(
+        Summary = "Change product status",
+        Description = "Change status of a product by its id")]
+    [SwaggerResponse(200, "Product fetched successfully", typeof(ProductResponseDto))]
+    [SwaggerResponse(404, "Product not found")]
+    public async Task<ActionResult<ProductResponseDto>> ChangeStatus(
+        Guid id,
+        [FromBody] ChangeStatusDto changeStatusDto)
+    {
+        return await _productService.ChangeStatusAsync(id, changeStatusDto);
+    }
+
     [HttpPost]
     [SwaggerOperation(
         Summary = "Create product",
