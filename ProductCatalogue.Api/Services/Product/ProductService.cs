@@ -31,8 +31,8 @@ public class ProductService(
             .Where(p => query.Name == null || EF.Functions.ILike(p.Name, $"%{query.Name}%"))
             .Where(p => query.Brand == null || p.Brand == query.Brand)
             .Where(p => query.Category == null || p.Category == query.Category)
-            .Where(p => query.Status == null || p.Status.ToString() == query.Status)
-            .Where(p => query.Readiness == null || p.Readiness.ToString() == query.Readiness)
+            .Where(p => query.Status == null || p.Status == query.Status)
+            .Where(p => query.Readiness == null || p.Readiness == query.Readiness)
             .Where(p => query.ProductCode == null || p.ProductCode == query.ProductCode)
             .ToListAsync();
 
@@ -59,6 +59,7 @@ public class ProductService(
         Product? product = await _context.Products.FindAsync(id);
         if (product is null)
             throw new NotFoundException($"Product with id {id} not found");
+
 
         product.Status = changeStatusDto.Status;
         await _context.SaveChangesAsync();

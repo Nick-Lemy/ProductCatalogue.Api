@@ -6,5 +6,5 @@ namespace ProductCatalogue.Api.DTOs;
 public class ChangeStatusDto
 {
     [Required]
-    public ProductStatus Status { get; private set; }
+    public ProductStatus Status { get; set; }
 }
