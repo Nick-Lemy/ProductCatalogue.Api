@@ -16,11 +16,12 @@ public class Asset
     public string Title { get; set; }
     public string Description { get; set; }
 
-    public List<Tag> Tags { get; set; } = [];
+    public List<AssetTag> Tags { get; set; } = [];
 
     public AssetStatus Status { get; set; }
+    public List<AssetStatusLog> StatusHisoty { get; set; }
     public string RejectionReason { get; set; }
-    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset Uploaded { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
 
 }

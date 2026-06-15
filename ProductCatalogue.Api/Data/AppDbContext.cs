@@ -8,6 +8,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Product> Products { get; set; }
     public DbSet<Variant> Variants { get; set; }
 
+    public DbSet<AssetStatusLog> AssetHistory { get; set; }
+    public DbSet<AssetTag> AssetTags { get; set; }
+    public DbSet<Asset> Assets { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
