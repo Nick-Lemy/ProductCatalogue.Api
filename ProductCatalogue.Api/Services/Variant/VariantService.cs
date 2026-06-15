@@ -16,6 +16,25 @@ public class VariantService(
     public async Task<VariantReponseDto> CreateAsync(CreateVariantDto createVariantDto)
     {
         _logger.LogInformation("[Variant] Creating variant with name {Name} for product {ProductId}", createVariantDto.Name, createVariantDto.ProductId);
+
+        Product? product = await _context.Products.AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == createVariantDto.ProductId);
+        if (product is null)
+            throw new NotFoundException($"Product with id {createVariantDto.ProductId} not found");
+
+        Variant? variantWithSameCode = await _context.Variants.AsNoTracking()
+            .FirstOrDefaultAsync(v => v.VariantCode == createVariantDto.VariantCode);
+        if (variantWithSameCode is not null)
+            throw new ConflictException($"Variant with code {createVariantDto.VariantCode} already exists");
+
+        if (createVariantDto.Barcode is not null)
+        {
+            Variant? variantWithSameBarcode = await _context.Variants.AsNoTracking()
+             .FirstOrDefaultAsync(v => v.Barcode != null && v.Barcode == createVariantDto.Barcode);
+            if (variantWithSameBarcode is not null)
+                throw new ConflictException($"Variant with barcode {createVariantDto.Barcode} already exists");
+        }
+
         Variant newVariant = createVariantDto.Adapt<Variant>();
         _context.Variants.Add(newVariant);
         await _context.SaveChangesAsync();
@@ -55,9 +74,34 @@ public class VariantService(
     public async Task<VariantReponseDto> UpdateAsync(Guid id, UpdateVariantDto updateVariantDto)
     {
         _logger.LogInformation("[Variant] Updating variant with id {Id}", id);
+
+        if (updateVariantDto.ProductId != null)
+        {
+            Product? product = await _context.Products.AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == updateVariantDto.ProductId);
+            if (product is null)
+                throw new NotFoundException($"Product with id {updateVariantDto.ProductId} not found");
+        }
+
         Variant? variant = await _context.Variants.FindAsync(id);
         if (variant is null)
             throw new NotFoundException($"Variant with id {id} not found");
+
+        if (updateVariantDto.VariantCode is not null && variant.VariantCode != updateVariantDto.VariantCode)
+        {
+            Variant? variantWithSameCode = await _context.Variants.AsNoTracking()
+             .FirstOrDefaultAsync(v => v.VariantCode == updateVariantDto.VariantCode && v.Id != id);
+            if (variantWithSameCode is not null)
+                throw new ConflictException($"Variant with code {updateVariantDto.VariantCode} already exists");
+        }
+
+        if (updateVariantDto.Barcode is not null && variant.Barcode != updateVariantDto.Barcode)
+        {
+            Variant? variantWithSameBarcode = await _context.Variants.AsNoTracking()
+             .FirstOrDefaultAsync(v => v.Barcode != null && v.Barcode == updateVariantDto.Barcode && v.Id != id);
+            if (variantWithSameBarcode is not null)
+                throw new ConflictException($"Variant with barcode {updateVariantDto.Barcode} already exists");
+        }
 
         updateVariantDto.Adapt(variant);
         variant.UpdatedAt = DateTimeOffset.UtcNow;
