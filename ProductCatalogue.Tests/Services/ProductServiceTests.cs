@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using ProductCatalogue.Api.Data;
 using ProductCatalogue.Api.DTOs;
 using ProductCatalogue.Api.Models;
@@ -23,7 +24,8 @@ public class ProductServiceTests
         );
         await context.SaveChangesAsync();
 
-        var service = new ProductService(context);
+        var logger = new LoggerFactory().CreateLogger<ProductService>();
+        var service = new ProductService(context, logger);
 
         var result = await service.GetAllAsync(new ProductQueryDto());
 

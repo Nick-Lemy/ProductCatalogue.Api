@@ -49,6 +49,7 @@ public class ProductService(
     public async Task<ProductResponseDto> GetByIdAsync(Guid id)
     {
         _logger.LogInformation("[Product] Fetching product with id {Id}", id);
+
         Product? product = await _context.Products.AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == id);
 

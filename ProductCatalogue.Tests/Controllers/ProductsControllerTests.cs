@@ -21,18 +21,29 @@ public class ProductsControllerTests
     [Fact]
     public async Task GetAll_Returns200_WithProducts()
     {
-        var products = new List<Product>
+        var products = new List<ProductResponseDto>
         {
-            new() { Name = "Shirt", Brand = "Nike" },
-            new() { Name = "Pants", Brand = "Adidas" }
+            new() { Name = "Shirt", Brand = "Nike", Category = "Tops", ProductCode = "SHT-001", Description = "A comfortable shirt", TargetMarket = " Men", Season = "Summer", Status = ProductStatus.DRAFT, Readiness = ProductReadiness.NOT_READY, CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow },
+            new() { Name = "Pants", Brand = "Adidas", Category = "Bottoms", ProductCode = "PNT-001", Description = "Comfortable pants", TargetMarket = "Women", Season = "Winter", Status = ProductStatus.DRAFT, Readiness = ProductReadiness.NOT_READY, CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow }
         };
+
+        var query = new ProductQueryDto()
+        {
+            Brand = "Nike",
+            Category = "Tops",
+            Status = ProductStatus.DRAFT,
+            Readiness = ProductReadiness.NOT_READY
+        };
+
         _serviceMock.Setup(s => s.GetAllAsync(It.IsAny<ProductQueryDto>()))
             .ReturnsAsync(products);
 
-        var result = await _controller.GetAll(new ProductQueryDto());
+        var actionResult = await _controller.GetAll(query);
 
-        var ok = Assert.IsType<OkObjectResult>(result.Result);
-        var returned = Assert.IsType<List<Product>>(ok.Value);
+        Assert.NotNull(actionResult.Result);
+        var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+        var returned = Assert.IsAssignableFrom<List<ProductResponseDto>>(okResult.Value);
+
         Assert.Equal(2, returned.Count);
     }
 
