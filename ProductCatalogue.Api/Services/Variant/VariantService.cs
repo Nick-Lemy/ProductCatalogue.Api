@@ -42,7 +42,6 @@ public class VariantService(
         return newVariant.Adapt<VariantResponseDto>();
     }
 
-
     public async Task<List<VariantResponseDto>> GetAllAsync(VariantQueryDto query)
     {
         _logger.LogInformation("[Variant] Fetching variants with query {@Query}", query);
@@ -109,6 +108,7 @@ public class VariantService(
         _logger.LogInformation("[Variant] Updated variant with id {Id}", id);
         return variant.Adapt<VariantResponseDto>();
     }
+
     public async Task DeleteAsync(Guid id)
     {
         _logger.LogInformation("[Variant] Deleting variant with id {Id}", id);
