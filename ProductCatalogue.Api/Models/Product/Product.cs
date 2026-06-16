@@ -15,14 +15,11 @@ public class Product
     [MaxLength(500)]
     public required string Description { get; set; }
 
-
     [MaxLength(50)]
     public required string ProductCode { get; set; }
 
     [MaxLength(100)]
     public required string Brand { get; set; }
-
-
 
     [MaxLength(100)]
     public required string Category { get; set; }
