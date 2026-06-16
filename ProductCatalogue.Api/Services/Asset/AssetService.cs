@@ -10,22 +10,39 @@ namespace ProductCatalogue.Api.Services;
 public class AssetService(
     AppDbContext context,
     IFileStorageService fileStorageService,
+     IAssetTagService assetTagService,
     ILogger<AssetService> logger) : IAssetService
 {
     private readonly AppDbContext _context = context;
     private readonly ILogger<AssetService> _logger = logger;
     private readonly IFileStorageService _fileStorageService = fileStorageService;
+    private readonly IAssetTagService _assetTagService = assetTagService;
     public async Task<AssetResponseDto> CreateAsync(UploadAssetDto uploadAssetDto)
     {
         _logger.LogInformation("[Asset] Creating asset for product {ProductId}", uploadAssetDto.ProductId);
+
+        bool productExists = await _context.Products.AnyAsync(p => p.Id == uploadAssetDto.ProductId);
+        if (!productExists)
+            throw new NotFoundException($"Product with id {uploadAssetDto.ProductId} not found");
+
         StorageUploadResult uploadResult = await _fileStorageService.UploadFileAsync(uploadAssetDto.File, "assets");
+
         Asset asset = uploadAssetDto.Adapt<Asset>();
-    
         asset.FilePublicId = uploadResult.PublicId;
         asset.FileUrl = uploadResult.Url;
 
+        if (uploadAssetDto.TagNames?.Count > 0)
+        {
+            foreach (var name in uploadAssetDto.TagNames)
+            {
+                AssetTag tag = await _assetTagService.GetOrCreateByNameAsync(name);
+                asset.Tags.Add(tag);
+            }
+        }
+
         _context.Assets.Add(asset);
         await _context.SaveChangesAsync();
+
         _logger.LogInformation("[Asset] Asset created successfully for product {ProductId}", uploadAssetDto.ProductId);
         return asset.Adapt<AssetResponseDto>();
     }
@@ -51,12 +68,14 @@ public class AssetService(
 
     public async Task<AssetResponseDto> GetByIdAsync(Guid id)
     {
+        _logger.LogInformation("[Asset] Fetching asset with id {Id}", id);
         Asset? asset = await _context.Assets.Include(a => a.Tags).AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == id);
 
         if(asset is null)
             throw new NotFoundException($"Asset with id {id} not found");
 
+        _logger.LogInformation("[Asset] Asset fetched successfully with id {Id}", id);
         return asset.Adapt<AssetResponseDto>();
     }
 

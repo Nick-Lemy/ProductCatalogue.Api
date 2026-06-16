@@ -17,8 +17,8 @@ public class AssetResponseDto
 
     public string? RejectionReason { get; init; }
     public AssetStatus Status { get; init; }
-    public ICollection<AssetStatusLog> StatusHistory { get; init; } = [];
-    public ICollection<AssetTag> Tags { get; init; } = [];
+    public List<AssetStatusLogResponseDto> StatusHistory { get; init; } = [];
+    public List<AssetTagResponseDto> Tags { get; init; } = [];
 
     public DateTimeOffset UploadedAt { get; init; }
     public DateTimeOffset UpdatedAt { get; init; }

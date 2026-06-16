@@ -40,6 +40,7 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 builder.Services.AddScoped<IFileStorageService, CloudinaryService>();
+builder.Services.AddScoped<IAssetTagService, AssetTagService>();
 builder.Services.AddScoped<IAssetService, AssetService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IVariantService, VariantService>();

@@ -11,4 +11,5 @@ public class UploadAssetDto
     public required string Title { get; set; }
     public required string Description { get; set; }
     public required AssetType AssetType { get; set; }
+    public required ICollection<string>? TagNames { get; set; }
 }
