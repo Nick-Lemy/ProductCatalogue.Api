@@ -29,6 +29,7 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IVariantService, VariantService>();
+builder.Services.AddScoped<IAssetService, AssetService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
