@@ -9,5 +9,5 @@ public interface IAssetService
     public Task<AssetResponseDto> GetByIdAsync(Guid id);
     public Task<AssetResponseDto> CreateAsync(UploadAssetDto uploadAssetDto);
     public Task<AssetResponseDto> UpdateAsync(Guid id, UpdateAssetDto updateAssetDto);
-    public Task<AssetResponseDto> DeleteAsync(Guid id);
+    public Task DeleteAsync(Guid id);
 }

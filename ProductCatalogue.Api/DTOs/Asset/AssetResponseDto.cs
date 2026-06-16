@@ -9,6 +9,7 @@ public class AssetResponseDto
     public Guid? VariantId { get; init; }
     public required string FileName { get; init; }
     public required string FileUrl { get; init; }
+    public required string FilePublicId { get; init; }
     public required AssetType AssetType { get; init; }
 
     public required string Title { get; init; }

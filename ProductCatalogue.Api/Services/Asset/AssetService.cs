@@ -2,24 +2,32 @@ using Mapster;
 using Microsoft.EntityFrameworkCore;
 using ProductCatalogue.Api.Data;
 using ProductCatalogue.Api.DTOs;
+using ProductCatalogue.Api.Exceptions;
 using ProductCatalogue.Api.Models;
 
 namespace ProductCatalogue.Api.Services;
 
 public class AssetService(
     AppDbContext context,
+    IFileStorageService fileStorageService,
     ILogger<AssetService> logger) : IAssetService
 {
     private readonly AppDbContext _context = context;
     private readonly ILogger<AssetService> _logger = logger;
+    private readonly IFileStorageService _fileStorageService = fileStorageService;
     public async Task<AssetResponseDto> CreateAsync(UploadAssetDto uploadAssetDto)
     {
         _logger.LogInformation("[Asset] Creating asset for product {ProductId}", uploadAssetDto.ProductId);
-        Asset? newAsset = uploadAssetDto.Adapt<Asset>();
-        _context.Assets.Add(newAsset);
+        StorageUploadResult uploadResult = await _fileStorageService.UploadFileAsync(uploadAssetDto.File, "assets");
+        Asset asset = uploadAssetDto.Adapt<Asset>();
+    
+        asset.FilePublicId = uploadResult.PublicId;
+        asset.FileUrl = uploadResult.Url;
+
+        _context.Assets.Add(asset);
         await _context.SaveChangesAsync();
         _logger.LogInformation("[Asset] Asset created successfully for product {ProductId}", uploadAssetDto.ProductId);
-        return newAsset.Adapt<AssetResponseDto>();
+        return asset.Adapt<AssetResponseDto>();
     }
 
     public async Task<List<AssetResponseDto>> GetAllAsync(AssetQueryDto query)
@@ -41,18 +49,29 @@ public class AssetService(
         return assets.Adapt<List<AssetResponseDto>>();
     }
 
-    public Task<AssetResponseDto> GetByIdAsync(Guid id)
+    public async Task<AssetResponseDto> GetByIdAsync(Guid id)
     {
+        Asset? asset = await _context.Assets.Include(a => a.Tags).AsNoTracking()
+            .FirstOrDefaultAsync(a => a.Id == id);
 
-        throw new NotImplementedException();
+        if(asset is null)
+            throw new NotFoundException($"Asset with id {id} not found");
+
+        return asset.Adapt<AssetResponseDto>();
     }
 
-    public Task<AssetResponseDto> UpdateAsync(Guid id, UpdateAssetDto updateAssetDto)
+    public async Task<AssetResponseDto> UpdateAsync(Guid id, UpdateAssetDto updateAssetDto)
     {
         throw new NotImplementedException();
     }
-    public Task<AssetResponseDto> DeleteAsync(Guid id)
+    public async Task DeleteAsync(Guid id)
     {
-        throw new NotImplementedException();
+        Asset? asset = await _context.Assets.FirstOrDefaultAsync(a => a.Id == id);
+        if(asset is null)
+            throw new NotFoundException($"Asset with id {id} not found");
+        _context.Assets.Remove(asset);
+        await _fileStorageService.DeleteFileAsync(asset.FilePublicId);
+        await _context.SaveChangesAsync();
     }
+
 }
