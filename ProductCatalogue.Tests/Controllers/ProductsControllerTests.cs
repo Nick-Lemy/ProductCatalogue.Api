@@ -40,9 +40,7 @@ public class ProductsControllerTests
 
         var actionResult = await _controller.GetAll(query);
 
-        Assert.NotNull(actionResult.Result);
-        var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-        var returned = Assert.IsAssignableFrom<List<ProductResponseDto>>(okResult.Value);
+        var returned = Assert.IsAssignableFrom<List<ProductResponseDto>>(actionResult.Value);
 
         Assert.Equal(2, returned.Count);
     }
