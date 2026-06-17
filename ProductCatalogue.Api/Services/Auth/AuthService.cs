@@ -59,7 +59,6 @@ public class AuthService(
             throw new UnauthorizedException("Invalid or expired refresh token");
         }
 
-        // rotation — revoke old, issue new
         stored.RevokedAt = DateTimeOffset.UtcNow;
 
         var user = stored.User!;
