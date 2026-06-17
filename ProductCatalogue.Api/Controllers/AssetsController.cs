@@ -11,7 +11,7 @@ public class AssetsController(
     IAssetService assetService
 ): ControllerBase
 {
-    IAssetService _assetService = assetService;
+    private readonly IAssetService _assetService = assetService;
 
     [HttpGet]
     [SwaggerOperation(
