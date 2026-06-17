@@ -9,7 +9,7 @@ public class CloudinaryService(Cloudinary cloudinary): IFileStorageService
 {
     private readonly Cloudinary _cloudinary = cloudinary;
     private static readonly string[] AllowedExtensions =
-    [".jpg", ".jpeg", ".png", ".webp", ".mp4", ".mov", ".pdf", ".docx"];
+    [".jpg", ".jpeg", ".png", ".webp", ".mp4", ".mov", ".webm", ".pdf", ".docx", ".xlsx"];
 
     private const long MaxFileSizeBytes = 10 * 1024 * 1024;
 

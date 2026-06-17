@@ -1,9 +1,16 @@
+using System.Text;
 using CloudinaryDotNet;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using ProductCatalogue.Api.Data;
+// using ProductCatalogue.Api.Data.Seed;
 using ProductCatalogue.Api.Exceptions;
 using ProductCatalogue.Api.Mappings;
+using ProductCatalogue.Api.Models;
 using ProductCatalogue.Api.Services;
 using ProductCatalogue.Api.Settings;
 
@@ -11,6 +18,54 @@ var builder = WebApplication.CreateBuilder(args);
 
 MappingConfig.RegisterMappings();
 
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options => {
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
+builder.Services.AddAuthorization();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Product Catalogue API",
+        Version = "v1"
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter your token below.\n\nExample: \"Bearer eyJhbGciOi...\""
+    });
+
+    options.AddSecurityRequirement(document =>
+    {
+        var schemeRef = new OpenApiSecuritySchemeReference("Bearer", document);
+        return new OpenApiSecurityRequirement
+        {
+            [schemeRef] = []
+        };
+    });
+});
 builder.Services.AddControllers();
 builder.Services.AddCors(options =>
 {
@@ -26,6 +81,12 @@ builder.Services.AddDbContext<AppDbContext>(
     options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")
     )
 );
+
+builder.Services.AddIdentityCore<AppUser>()
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
+
 builder.Services.AddSingleton(provider =>
 {
     var config = provider.GetRequiredService<IOptions<CloudinarySettings>>().Value;
@@ -65,8 +126,13 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");
 
+app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
+
+// using (var scope = app.Services.CreateScope())
+// {
+//     await IdentitySeeder.SeedAdminUserAsync(scope.ServiceProvider, app.Configuration);
+// }
 
 app.Run();

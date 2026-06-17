@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductCatalogue.Api.DTOs;
 using ProductCatalogue.Api.Services;
@@ -6,6 +7,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace ProductCatalogue.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("assets")]
 public class AssetsController(
     IAssetService assetService
