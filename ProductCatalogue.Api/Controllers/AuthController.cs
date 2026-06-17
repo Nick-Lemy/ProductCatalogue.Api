@@ -3,16 +3,20 @@ using Microsoft.AspNetCore.Mvc;
 using ProductCatalogue.Api.DTOs;
 using ProductCatalogue.Api.Services;
 
+namespace ProductCatalogue.Api.Controllers;
+
 [ApiController]
 [Route("auth")]
 public class AuthController(IAuthService authService) : ControllerBase
 {
+    private readonly IAuthService _authService = authService;
+
     private const string RefreshTokenCookie = "refreshToken";
 
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginDto dto)
     {
-        var result = await authService.LoginAsync(dto);
+        var result = await _authService.LoginAsync(dto);
         SetRefreshTokenCookie(result.RefreshToken);
         return Ok(result.Response);
     }
@@ -20,7 +24,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("refresh")]
     public async Task<ActionResult<AuthResponseDto>> Refresh()
     {
-        var result = await authService.RefreshAsync(Request.Cookies[RefreshTokenCookie]);
+        var result = await _authService.RefreshAsync(Request.Cookies[RefreshTokenCookie]);
         SetRefreshTokenCookie(result.RefreshToken);
         return Ok(result.Response);
     }
@@ -29,7 +33,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     [Authorize]
     public async Task<ActionResult> Logout()
     {
-        await authService.LogoutAsync(Request.Cookies[RefreshTokenCookie]);
+        await _authService.LogoutAsync(Request.Cookies[RefreshTokenCookie]);
         Response.Cookies.Delete(RefreshTokenCookie);
         return NoContent();
     }
