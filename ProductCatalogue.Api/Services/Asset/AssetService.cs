@@ -123,6 +123,13 @@ public class AssetService(
             throw new NotFoundException($"Asset with id {id} not found");
 
         asset.Status = approveAssetDto.NewStatus;
+        AssetStatusLog log = new ()
+        {
+            AssetId = asset.Id,
+            ChangedAt = DateTime.UtcNow,
+            Status = asset.Status
+        };
+        asset.StatusHistory.Add(log);
         await _context.SaveChangesAsync();
         _logger.LogInformation("[Asset] Asset with id {Id} approved successfully", id);
     }
