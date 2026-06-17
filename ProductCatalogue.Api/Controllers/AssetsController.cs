@@ -44,6 +44,30 @@ public class AssetsController(
         AssetResponseDto newAsset = await _assetService.CreateAsync(uploadAssetDto);
         return CreatedAtAction(nameof(GetById), new { id = newAsset.Id }, newAsset);
     }
+    
+    [HttpPost("{id}/reject")]
+    [SwaggerOperation(
+        Summary = "Reject asset",
+        Description = "Rejects an existing asset.")]
+    [SwaggerResponse(204, "Asset rejected successfully", typeof(void))]
+    public async Task<ActionResult> Reject(Guid id, [FromBody] RejectAssetDto rejectAssetDto)
+    {
+        await _assetService.RejectAssetAsync(id, rejectAssetDto);
+        return NoContent();
+    }
+
+    [HttpPost("{id}/approve")]
+    [SwaggerOperation(
+        Summary = "Approve asset",
+        Description = "Approves an existing asset.")]
+    [SwaggerResponse(204, "Asset approved successfully", typeof(void))]
+    public async Task<ActionResult> Approve(
+        Guid id,
+        [FromBody] ApproveAssetDto approveAssetDto)
+    {
+        await _assetService.ApproveAssetAsync(id, approveAssetDto);
+        return NoContent();
+    }
 
     [HttpPut("{id}")]
     [SwaggerOperation(

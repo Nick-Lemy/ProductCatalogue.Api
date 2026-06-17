@@ -93,4 +93,37 @@ public class AssetService(
         await _context.SaveChangesAsync();
     }
 
+    public async Task RejectAssetAsync(Guid id, RejectAssetDto rejectAssetDto)
+    {
+        _logger.LogInformation("[Asset] Rejecting asset with id {Id} for reason: {Reason}", id, rejectAssetDto.RejectionReason);
+        Asset? asset = await _context.Assets.FirstOrDefaultAsync(a => a.Id == id);
+        if(asset is null)
+            throw new NotFoundException($"Asset with id {id} not found");
+
+        asset.Status = AssetStatus.REJECTED;
+        asset.RejectionReason = rejectAssetDto.RejectionReason;
+
+        AssetStatusLog log = new ()
+        {
+            AssetId = asset.Id,
+            ChangedAt = DateTime.UtcNow,
+            Status = asset.Status,
+            RejectionReason = rejectAssetDto.RejectionReason
+        };
+        asset.StatusHistory.Add(log);
+        await _context.SaveChangesAsync();
+        _logger.LogInformation("[Asset] Asset with id {Id} rejected successfully", id);
+    }
+
+    public async Task ApproveAssetAsync(Guid id, ApproveAssetDto approveAssetDto)
+    {
+        _logger.LogInformation("[Asset] Approving asset with id {Id}", id);
+        Asset? asset = await _context.Assets.FirstOrDefaultAsync(a => a.Id == id);
+        if(asset is null)
+            throw new NotFoundException($"Asset with id {id} not found");
+
+        asset.Status = approveAssetDto.NewStatus;
+        await _context.SaveChangesAsync();
+        _logger.LogInformation("[Asset] Asset with id {Id} approved successfully", id);
+    }
 }
