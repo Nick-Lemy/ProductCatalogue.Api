@@ -29,8 +29,8 @@ public class AuthController(IAuthService authService) : ControllerBase
         return Ok(result.Response);
     }
 
-    [HttpPost("logout")]
     [Authorize]
+    [HttpPost("logout")]
     public async Task<ActionResult> Logout()
     {
         await _authService.LogoutAsync(Request.Cookies[RefreshTokenCookie]);

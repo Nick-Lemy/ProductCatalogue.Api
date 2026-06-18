@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ProductCatalogue.Api.Data;
 using ProductCatalogue.Api.DTOs;
 using ProductCatalogue.Api.Models;
-using UnauthorizedException = ProductCatalogue.Api.Exceptions.UnauthorizedAccessException;
+using ProductCatalogue.Api.Exceptions;
 
 namespace ProductCatalogue.Api.Services;
 
@@ -26,10 +26,7 @@ public class AuthService(
 
         var user = await _userManager.FindByEmailAsync(dto.Email);
         if (user is null || !await _userManager.CheckPasswordAsync(user, dto.Password))
-        {
-            _logger.LogWarning("[Auth] Failed login attempt for {Email}", dto.Email);
             throw new UnauthorizedException("Invalid email or password");
-        }
 
         var roles = await _userManager.GetRolesAsync(user);
         var accessToken = _tokenService.GenerateAccessToken(user, roles);
@@ -44,20 +41,14 @@ public class AuthService(
         _logger.LogInformation("[Auth] Refresh token requested");
 
         if (refreshToken is null)
-        {
-            _logger.LogWarning("[Auth] Refresh failed: token missing");
             throw new UnauthorizedException("Refresh token missing");
-        }
 
         var stored = await _context.RefreshTokens
             .Include(rt => rt.User)
             .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
 
         if (stored is null || !stored.IsActive)
-        {
-            _logger.LogWarning("[Auth] Refresh failed: invalid or expired token");
             throw new UnauthorizedException("Invalid or expired refresh token");
-        }
 
         stored.RevokedAt = DateTimeOffset.UtcNow;
 
