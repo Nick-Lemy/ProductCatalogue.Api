@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductCatalogue.Api.DTOs;
 using ProductCatalogue.Api.Models;
@@ -7,6 +8,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace ProductCatalogue.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("products")]
 public class ProductsController(IProductService productService) : ControllerBase
 {

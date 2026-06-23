@@ -40,11 +40,33 @@ public class ProductsControllerTests
 
         var actionResult = await _controller.GetAll(query);
 
-        Assert.NotNull(actionResult.Result);
-        var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-        var returned = Assert.IsAssignableFrom<List<ProductResponseDto>>(okResult.Value);
+        var returned = Assert.IsType<List<ProductResponseDto>>(actionResult.Value, exactMatch: false);
 
         Assert.Equal(2, returned.Count);
+    }
+
+    [Fact]
+    public async Task GetById_Returns200_WithProduct()
+    {
+        var productId = Guid.NewGuid();
+        var product = new ProductResponseDto { Id = productId, Name = "Shirt", Brand = "Nike", Category = "Tops", ProductCode = "SHT-001", Description = "A comfortable shirt", TargetMarket = "Men", Season = "Summer", Status = ProductStatus.DRAFT, Readiness = ProductReadiness.NOT_READY, CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow }; 
+
+        _serviceMock.Setup(s => s.GetByIdAsync(productId))
+            .ReturnsAsync(product);
+        
+        var actionResult = await _controller.GetById(productId);
+
+        var returned = Assert.IsType<ProductResponseDto>(actionResult.Value, exactMatch: false);
+        Assert.Equal(productId, returned.Id);
+        Assert.Equal("Shirt", returned.Name);
+        Assert.Equal("Nike", returned.Brand);
+        Assert.Equal("Tops", returned.Category);
+        Assert.Equal("SHT-001", returned.ProductCode);
+        Assert.Equal("A comfortable shirt", returned.Description);
+        Assert.Equal("Men", returned.TargetMarket);
+        Assert.Equal("Summer", returned.Season);
+        Assert.Equal(ProductStatus.DRAFT, returned.Status);
+        Assert.Equal(ProductReadiness.NOT_READY, returned.Readiness);
     }
 
 }
