@@ -100,6 +100,8 @@ public class AssetService(
         if(asset is null)
             throw new NotFoundException($"Asset with id {id} not found");
 
+        if(asset.Status == AssetStatus.REJECTED) return;
+
         asset.Status = AssetStatus.REJECTED;
         asset.RejectionReason = rejectAssetDto.RejectionReason;
 
