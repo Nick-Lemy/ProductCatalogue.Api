@@ -5,7 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using ProductCatalogue.Api.Data;
 using ProductCatalogue.Api.Models;
 
-namespace ProductCatalogue.Api.Extentions;
+namespace ProductCatalogue.Api.Extensions;
 
 public static class AuthenticationExtensions
 {

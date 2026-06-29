@@ -21,6 +21,7 @@ public class AuthController(IAuthService authService) : ControllerBase
         return Ok(result.Response);
     }
 
+    [Authorize]
     [HttpPost("refresh")]
     public async Task<ActionResult<AuthResponseDto>> Refresh()
     {
