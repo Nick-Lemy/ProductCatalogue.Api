@@ -5,9 +5,9 @@ namespace ProductCatalogue.Api.Services;
 
 public interface IVariantService
 {
-    public Task<List<VariantResponseDto>> GetAllAsync(VariantQueryDto query);
-    public Task<VariantResponseDto> GetByIdAsync(Guid id);
-    public Task<VariantResponseDto> CreateAsync(CreateVariantDto createVariantDto);
-    public Task<VariantResponseDto> UpdateAsync(Guid id, UpdateVariantDto updateVariantDto);
-    public Task DeleteAsync(Guid id);
+    public Task<Result<List<VariantResponseDto>>> GetAllAsync(VariantQueryDto query);
+    public Task<Result<VariantResponseDto>> GetByIdAsync(Guid id);
+    public Task<Result<VariantResponseDto>> CreateAsync(CreateVariantDto createVariantDto);
+    public Task<Result<VariantResponseDto>> UpdateAsync(Guid id, UpdateVariantDto updateVariantDto);
+    public Task<Result> DeleteAsync(Guid id);
 }

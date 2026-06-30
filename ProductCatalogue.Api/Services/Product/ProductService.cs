@@ -2,7 +2,6 @@ using Mapster;
 using Microsoft.EntityFrameworkCore;
 using ProductCatalogue.Api.Data;
 using ProductCatalogue.Api.DTOs;
-using ProductCatalogue.Api.Exceptions;
 using ProductCatalogue.Api.Models;
 
 namespace ProductCatalogue.Api.Services;
@@ -14,23 +13,23 @@ public class ProductService(
     private readonly AppDbContext _context = context;
     private readonly ILogger<ProductService> _logger = logger;
 
-    public async Task<ProductResponseDto> CreateAsync(CreateProductDto createProductDto)
+    public async Task<Result<ProductResponseDto>> CreateAsync(CreateProductDto createProductDto)
     {
         _logger.LogInformation("[Product] Creating product with name {Name}", createProductDto.Name);
         Product? productWithSameCode = await _context.Products.AsNoTracking()
             .FirstOrDefaultAsync(p => p.ProductCode == createProductDto.ProductCode);
 
         if (productWithSameCode is not null)
-            throw new ConflictException($"Product with code {createProductDto.ProductCode} already exists");
+            return Result.Conflict($"Product with code {createProductDto.ProductCode} already exists");
 
         Product newProduct = createProductDto.Adapt<Product>();
         _context.Products.Add(newProduct);
         await _context.SaveChangesAsync();
         _logger.LogInformation("[Product] Product {ProductId} created successfully", newProduct.Id);
-        return newProduct.Adapt<ProductResponseDto>();
+        return Result<ProductResponseDto>.Success(newProduct.Adapt<ProductResponseDto>());
     }
 
-    public async Task<List<ProductResponseDto>> GetAllAsync(ProductQueryDto query)
+    public async Task<Result<List<ProductResponseDto>>> GetAllAsync(ProductQueryDto query)
     {
         _logger.LogInformation("[Product] Fetching products with query {@Query}", query);
         List<Product> products = await _context.Products.AsNoTracking()
@@ -43,10 +42,10 @@ public class ProductService(
             .ToListAsync();
 
         _logger.LogInformation("[Product] Fetched {Count} products", products.Count);
-        return products.Adapt<List<ProductResponseDto>>();
+        return Result<List<ProductResponseDto>>.Success(products.Adapt<List<ProductResponseDto>>());
     }
 
-    public async Task<ProductResponseDto> GetByIdAsync(Guid id)
+    public async Task<Result<ProductResponseDto>> GetByIdAsync(Guid id)
     {
         _logger.LogInformation("[Product] Fetching product with id {Id}", id);
 
@@ -54,37 +53,37 @@ public class ProductService(
             .FirstOrDefaultAsync(p => p.Id == id);
 
         if (product is null)
-            throw new NotFoundException($"Product with id {id} not found");
+            return Result.NotFound($"Product with id {id} not found");
 
         _logger.LogInformation("[Product] Product fetched successfully with id {Id}", id);
-        return product.Adapt<ProductResponseDto>();
+        return Result<ProductResponseDto>.Success(product.Adapt<ProductResponseDto>());
     }
 
-    public async Task<ProductResponseDto> ChangeStatusAsync(Guid id, ChangeStatusDto changeStatusDto)
+    public async Task<Result<ProductResponseDto>> ChangeStatusAsync(Guid id, ChangeStatusDto changeStatusDto)
     {
         _logger.LogInformation("[Product] Changing status of product with id {id}", id);
         Product? product = await _context.Products.FindAsync(id);
         if (product is null)
-            throw new NotFoundException($"Product with id {id} not found");
+            return Result.NotFound($"Product with id {id} not found");
 
         if (product.Status == changeStatusDto.Status)
-            throw new ConflictException($"Product with id {id} already has status {changeStatusDto.Status}");
+            return Result.Conflict($"Product with id {id} already has status {changeStatusDto.Status}");
 
         if (changeStatusDto.Status == ProductStatus.PUBLISHED && product.Readiness == ProductReadiness.NOT_READY)
-            throw new ConflictException("Product must be ready before publishing");
+            return Result.Conflict("Product must be ready before publishing");
 
         product.Status = changeStatusDto.Status;
         await _context.SaveChangesAsync();
         _logger.LogInformation("[Product] Changed status of product with id {id} to {status}", id, product.Status);
-        return product.Adapt<ProductResponseDto>();
+        return Result<ProductResponseDto>.Success(product.Adapt<ProductResponseDto>());
     }
-    public async Task<ProductResponseDto> UpdateAsync(Guid id, UpdateProductDto updateProductDto)
+    public async Task<Result<ProductResponseDto>> UpdateAsync(Guid id, UpdateProductDto updateProductDto)
     {
         _logger.LogInformation("[Product] Updating product with id {Id}", id);
         var product = await _context.Products.FindAsync(id);
 
         if (product is null)
-            throw new NotFoundException($"Product with id {id} not found");
+            return Result.NotFound($"Product with id {id} not found");
 
         if (updateProductDto.ProductCode is not null && product.ProductCode != updateProductDto.ProductCode)
         {
@@ -92,27 +91,28 @@ public class ProductService(
                 .FirstOrDefaultAsync(p => p.ProductCode == updateProductDto.ProductCode && p.Id != id);
 
             if (productWithSameCode is not null)
-                throw new ConflictException($"Product with code {updateProductDto.ProductCode} already exists");
+                return Result.Conflict($"Product with code {updateProductDto.ProductCode} already exists");
         }
 
         updateProductDto.Adapt(product);
         product.UpdatedAt = DateTimeOffset.UtcNow;
         await _context.SaveChangesAsync();
         _logger.LogInformation("[Product] Updated product with id {Id}", id);
-        return product.Adapt<ProductResponseDto>();
+        return Result<ProductResponseDto>.Success(product.Adapt<ProductResponseDto>());
     }
 
-    public async Task DeleteAsync(Guid id)
+    public async Task<Result> DeleteAsync(Guid id)
     {
         _logger.LogInformation("[Product] Deleting product with id {Id}", id);
         var product = await _context.Products.FindAsync(id);
 
         if (product is null)
-            throw new NotFoundException($"Product with id {id} not found");
-
+            return Result.NotFound($"Product with id {id} not found");
+    
         _context.Products.Remove(product);
         await _context.SaveChangesAsync();
         _logger.LogInformation("[Product] Deleted product with id {Id}", id);
+        return Result.Success();
     }
 
 }

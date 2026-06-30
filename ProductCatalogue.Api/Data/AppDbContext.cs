@@ -96,7 +96,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             new() { Id = Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"), ProductId = products[0].Id, Name = "Navy / Medium", VariantCode = "SHT-001-NVY-M", Colour = "Navy", Size = "M", Material = "100% Cotton", CreatedAt = seededAt, UpdatedAt = seededAt },
             new() { Id = Guid.Parse("ffffffff-ffff-ffff-ffff-ffffffffffff"), ProductId = products[0].Id, Name = "Navy / Large", VariantCode = "SHT-001-NVY-L", Colour = "Navy", Size = "L", Material = "100% Cotton", CreatedAt = seededAt, UpdatedAt = seededAt },
 
-            // Slim Fit Chinos variants
             new() { Id = Guid.Parse("11111111-1111-1111-1111-111111111112"), ProductId = products[1].Id, Name = "Beige / 30", VariantCode = "TRS-002-BGE-30", Colour = "Beige", Size = "30", Material = "98% Cotton 2% Elastane", Barcode = "5901234123460", CreatedAt = seededAt, UpdatedAt = seededAt },
             new() { Id = Guid.Parse("11111111-1111-1111-1111-111111111113"), ProductId = products[1].Id, Name = "Beige / 32", VariantCode = "TRS-002-BGE-32", Colour = "Beige", Size = "32", Material = "98% Cotton 2% Elastane", Barcode = "5901234123461", CreatedAt = seededAt, UpdatedAt = seededAt },
             new() { Id = Guid.Parse("11111111-1111-1111-1111-111111111114"), ProductId = products[1].Id, Name = "Khaki / 30", VariantCode = "TRS-002-KHK-30", Colour = "Khaki", Size = "30", Material = "98% Cotton 2% Elastane", CreatedAt = seededAt, UpdatedAt = seededAt },

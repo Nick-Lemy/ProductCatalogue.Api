@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductCatalogue.Api.DTOs;
+using ProductCatalogue.Api.Extensions;
 using ProductCatalogue.Api.Models;
 using ProductCatalogue.Api.Services;
 using Swashbuckle.AspNetCore.Annotations;
@@ -22,8 +23,11 @@ public class VariantController(IVariantService variantService) : ControllerBase
     [SwaggerResponse(400, "Invalid variant data")]
     public async Task<ActionResult<VariantResponseDto>> Create([FromBody] CreateVariantDto createVariantDto)
     {
-        VariantResponseDto newVariant = await _variantService.CreateAsync(createVariantDto);
-        return CreatedAtAction(nameof(GetById), new { Id = newVariant.Id }, newVariant);
+        var result = await _variantService.CreateAsync(createVariantDto);
+        if(!result.IsSuccess)
+            return result.ToActionResult();
+    
+        return CreatedAtAction(nameof(GetById), new { Id = result.Value!.Id }, result.Value);
     }
 
     [HttpGet]
@@ -33,7 +37,7 @@ public class VariantController(IVariantService variantService) : ControllerBase
     [SwaggerResponse(200, "List of variants fetched successfully", typeof(List<VariantResponseDto>))]
     public async Task<ActionResult<List<VariantResponseDto>>> GetAll([FromQuery] VariantQueryDto query)
     {
-        return await _variantService.GetAllAsync(query);
+        return (await _variantService.GetAllAsync(query)).ToActionResult();
     }
 
     [HttpGet("{id}")]
@@ -44,7 +48,7 @@ public class VariantController(IVariantService variantService) : ControllerBase
     [SwaggerResponse(404, "Variant not found")]
     public async Task<ActionResult<VariantResponseDto>> GetById(Guid id)
     {
-        return await _variantService.GetByIdAsync(id);
+        return (await _variantService.GetByIdAsync(id)).ToActionResult();
     }
 
     [HttpPut("{id}")]
@@ -58,7 +62,7 @@ public class VariantController(IVariantService variantService) : ControllerBase
         [FromBody] UpdateVariantDto updateVariantDto
         )
     {
-        return await _variantService.UpdateAsync(id, updateVariantDto);
+        return (await _variantService.UpdateAsync(id, updateVariantDto)).ToActionResult();
     }
 
     [HttpDelete("{id}")]
@@ -69,7 +73,6 @@ public class VariantController(IVariantService variantService) : ControllerBase
     [SwaggerResponse(404, "Variant not found")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        await _variantService.DeleteAsync(id);
-        return NoContent();
+        return (await _variantService.DeleteAsync(id)).ToActionResult();
     }
 }

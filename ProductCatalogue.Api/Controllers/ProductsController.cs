@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductCatalogue.Api.DTOs;
+using ProductCatalogue.Api.Extensions;
 using ProductCatalogue.Api.Models;
 using ProductCatalogue.Api.Services;
 using Swashbuckle.AspNetCore.Annotations;
@@ -23,7 +24,7 @@ public class ProductsController(IProductService productService) : ControllerBase
         [FromQuery] ProductQueryDto query
         )
     {
-        return await _productService.GetAllAsync(query);
+        return (await _productService.GetAllAsync(query)).ToActionResult();
     }
 
     [HttpGet("{id}")]
@@ -34,7 +35,7 @@ public class ProductsController(IProductService productService) : ControllerBase
     [SwaggerResponse(404, "Product not found")]
     public async Task<ActionResult<ProductResponseDto>> GetById(Guid id)
     {
-        return await _productService.GetByIdAsync(id);
+        return (await _productService.GetByIdAsync(id)).ToActionResult();
     }
 
     [HttpPatch("{id}/change-status")]
@@ -48,7 +49,7 @@ public class ProductsController(IProductService productService) : ControllerBase
         Guid id,
         [FromBody] ChangeStatusDto changeStatusDto)
     {
-        return await _productService.ChangeStatusAsync(id, changeStatusDto);
+        return (await _productService.ChangeStatusAsync(id, changeStatusDto)).ToActionResult();
     }
 
     [HttpPost]
@@ -61,8 +62,11 @@ public class ProductsController(IProductService productService) : ControllerBase
         [FromBody] CreateProductDto createProductDto
     )
     {
-        ProductResponseDto newProduct = await _productService.CreateAsync(createProductDto);
-        return CreatedAtAction(nameof(GetById), new { Id = newProduct.Id }, newProduct);
+        var result = await _productService.CreateAsync(createProductDto);
+        if (!result.IsSuccess)
+            return result.ToActionResult();
+
+        return CreatedAtAction(nameof(GetById), new { id = result.Value!.Id }, result.Value);
     }
 
     [HttpPut("{id}")]
@@ -73,7 +77,7 @@ public class ProductsController(IProductService productService) : ControllerBase
     [SwaggerResponse(404, "Product not found")]
     public async Task<ActionResult<ProductResponseDto>> Update(Guid id, [FromBody] UpdateProductDto updateProductDto)
     {
-        return await _productService.UpdateAsync(id, updateProductDto);
+        return (await _productService.UpdateAsync(id, updateProductDto)).ToActionResult();
     }
 
     [HttpDelete("{id}")]
@@ -82,9 +86,8 @@ public class ProductsController(IProductService productService) : ControllerBase
         Description = "Deletes a product by its id.")]
     [SwaggerResponse(204, "Product deleted successfully")]
     [SwaggerResponse(404, "Product not found")]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<ActionResult> Delete(Guid id)
     {
-        await _productService.DeleteAsync(id);
-        return NoContent();
+        return (await _productService.DeleteAsync(id)).ToActionResult();
     }
 }

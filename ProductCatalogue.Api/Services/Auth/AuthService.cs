@@ -20,13 +20,13 @@ public class AuthService(
 
     private static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromDays(7);
 
-    public async Task<AuthResult> LoginAsync(LoginDto dto)
+    public async Task<Result<AuthResult>> LoginAsync(LoginDto dto)
     {
         _logger.LogInformation("[Auth] Login attempt for {Email}", dto.Email);
 
         var user = await _userManager.FindByEmailAsync(dto.Email);
         if (user is null || !await _userManager.CheckPasswordAsync(user, dto.Password))
-            throw new UnauthorizedException("Invalid email or password");
+            return Result.Unauthorized("Invalid email or password");
 
         var roles = await _userManager.GetRolesAsync(user);
         var accessToken = _tokenService.GenerateAccessToken(user, roles);
@@ -36,19 +36,19 @@ public class AuthService(
         return BuildResult(user, accessToken, refreshToken);
     }
 
-    public async Task<AuthResult> RefreshAsync(string? refreshToken)
+    public async Task<Result<AuthResult>> RefreshAsync(string? refreshToken)
     {
         _logger.LogInformation("[Auth] Refresh token requested");
 
         if (refreshToken is null)
-            throw new UnauthorizedException("Refresh token missing");
+            return Result.Unauthorized("Refresh token missing");
 
         var stored = await _context.RefreshTokens
             .Include(rt => rt.User)
             .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
 
         if (stored is null || !stored.IsActive)
-            throw new UnauthorizedException("Invalid or expired refresh token");
+            return Result.Unauthorized("Invalid or expired refresh token");
 
         stored.RevokedAt = DateTimeOffset.UtcNow;
 
@@ -61,9 +61,9 @@ public class AuthService(
         return BuildResult(user, newAccessToken, newRefreshToken);
     }
 
-    public async Task LogoutAsync(string? refreshToken)
+    public async Task<Result> LogoutAsync(string? refreshToken)
     {
-        if (refreshToken is null) return;
+        if (refreshToken is null) return Result.Success();
 
         var stored = await _context.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == refreshToken);
         if (stored is not null)
@@ -72,6 +72,7 @@ public class AuthService(
             await _context.SaveChangesAsync();
             _logger.LogInformation("[Auth] User {UserId} logged out; refresh token revoked", stored.UserId);
         }
+        return Result.Success();
     }
 
     private async Task<string> IssueRefreshTokenAsync(string userId)
