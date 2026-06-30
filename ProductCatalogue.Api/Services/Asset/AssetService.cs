@@ -103,6 +103,8 @@ public class AssetService(
 
         if(asset.Status == AssetStatus.REJECTED) return Result.Success();
 
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
         asset.Status = AssetStatus.REJECTED;
         asset.RejectionReason = rejectAssetDto.RejectionReason;
 
@@ -115,6 +117,7 @@ public class AssetService(
         };
         asset.StatusHistory.Add(log);
         await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
         _logger.LogInformation("[Asset] Asset with id {Id} rejected successfully", id);
         return Result.Success();
     }
@@ -128,6 +131,8 @@ public class AssetService(
 
         if(asset.Status == AssetStatus.APPROVED) return Result.Success();
 
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
         asset.Status = AssetStatus.APPROVED;
         AssetStatusLog log = new ()
         {
@@ -137,6 +142,7 @@ public class AssetService(
         };
         asset.StatusHistory.Add(log);
         await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
         _logger.LogInformation("[Asset] Asset with id {Id} approved successfully", id);
         return Result.Success();
     }

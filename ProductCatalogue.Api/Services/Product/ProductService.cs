@@ -66,15 +66,56 @@ public class ProductService(
         if (product is null)
             return Result.NotFound($"Product with id {id} not found");
 
+        if (changeStatusDto.Status is ProductStatus.IN_REVIEW or ProductStatus.PUBLISHED)
+            return Result.Validation($"Use the dedicated endpoint to set status {changeStatusDto.Status}");
+
         if (product.Status == changeStatusDto.Status)
             return Result.Conflict($"Product with id {id} already has status {changeStatusDto.Status}");
-
-        if (changeStatusDto.Status == ProductStatus.PUBLISHED && product.Readiness == ProductReadiness.NOT_READY)
-            return Result.Conflict("Product must be ready before publishing");
 
         product.Status = changeStatusDto.Status;
         await _context.SaveChangesAsync();
         _logger.LogInformation("[Product] Changed status of product with id {id} to {status}", id, product.Status);
+        return Result<ProductResponseDto>.Success(product.Adapt<ProductResponseDto>());
+    }
+
+    public async Task<Result<ProductResponseDto>> SubmitForReviewAsync(Guid id)
+    {
+        _logger.LogInformation("[Product] Submitting product {id} for review", id);
+        Product? product = await _context.Products.FindAsync(id);
+        if (product is null)
+            return Result.NotFound($"Product with id {id} not found");
+
+        if (product.Status == ProductStatus.IN_REVIEW)
+            return Result.Conflict($"Product with id {id} is already in review");
+
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        product.Status = ProductStatus.IN_REVIEW;
+        await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
+
+        _logger.LogInformation("[Product] Product {id} submitted for review", id);
+        return Result<ProductResponseDto>.Success(product.Adapt<ProductResponseDto>());
+    }
+
+    public async Task<Result<ProductResponseDto>> PublishAsync(Guid id)
+    {
+        _logger.LogInformation("[Product] Publishing product {id}", id);
+        Product? product = await _context.Products.FindAsync(id);
+        if (product is null)
+            return Result.NotFound($"Product with id {id} not found");
+
+        if (product.Status == ProductStatus.PUBLISHED)
+            return Result.Conflict($"Product with id {id} is already published");
+
+        if (product.Readiness == ProductReadiness.NOT_READY)
+            return Result.Conflict("Product must be ready before publishing");
+
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        product.Status = ProductStatus.PUBLISHED;
+        await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
+
+        _logger.LogInformation("[Product] Product {id} published", id);
         return Result<ProductResponseDto>.Success(product.Adapt<ProductResponseDto>());
     }
     public async Task<Result<ProductResponseDto>> UpdateAsync(Guid id, UpdateProductDto updateProductDto)

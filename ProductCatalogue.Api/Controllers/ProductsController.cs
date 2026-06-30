@@ -52,6 +52,30 @@ public class ProductsController(IProductService productService) : ControllerBase
         return (await _productService.ChangeStatusAsync(id, changeStatusDto)).ToActionResult();
     }
 
+    [HttpPost("{id}/submit-for-review")]
+    [SwaggerOperation(
+        Summary = "Submit product for review",
+        Description = "Transitions a product into the IN_REVIEW status.")]
+    [SwaggerResponse(200, "Product submitted for review", typeof(ProductResponseDto))]
+    [SwaggerResponse(404, "Product not found")]
+    [SwaggerResponse(409, "Product is already in review")]
+    public async Task<ActionResult<ProductResponseDto>> SubmitForReview(Guid id)
+    {
+        return (await _productService.SubmitForReviewAsync(id)).ToActionResult();
+    }
+
+    [HttpPost("{id}/publish")]
+    [SwaggerOperation(
+        Summary = "Publish product",
+        Description = "Transitions a product into the PUBLISHED status once it is ready.")]
+    [SwaggerResponse(200, "Product published", typeof(ProductResponseDto))]
+    [SwaggerResponse(404, "Product not found")]
+    [SwaggerResponse(409, "Product is already published or not ready")]
+    public async Task<ActionResult<ProductResponseDto>> Publish(Guid id)
+    {
+        return (await _productService.PublishAsync(id)).ToActionResult();
+    }
+
     [HttpPost]
     [SwaggerOperation(
         Summary = "Create product",
