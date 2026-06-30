@@ -23,7 +23,7 @@ public class AssetService(
 
         bool productExists = await _context.Products.AnyAsync(p => p.Id == uploadAssetDto.ProductId);
         if (!productExists)
-            Result.NotFound($"Product with id {uploadAssetDto.ProductId} not found");
+            return Result.NotFound($"Product with id {uploadAssetDto.ProductId} not found");
 
         StorageUploadResult uploadResult = await _fileStorageService.UploadFileAsync(uploadAssetDto.File, "assets");
 
