@@ -13,26 +13,26 @@ public class VariantService(
 {
     private readonly AppDbContext _context = context;
     private readonly ILogger<VariantService> _logger = logger;
-    public async Task<VariantResponseDto> CreateAsync(CreateVariantDto createVariantDto)
+    public async Task<Result<VariantResponseDto>> CreateAsync(CreateVariantDto createVariantDto)
     {
         _logger.LogInformation("[Variant] Creating variant with name {Name} for product {ProductId}", createVariantDto.Name, createVariantDto.ProductId);
 
         Product? product = await _context.Products.AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == createVariantDto.ProductId);
         if (product is null)
-            throw new NotFoundException($"Product with id {createVariantDto.ProductId} not found");
+           return Result.NotFound($"Product with id {createVariantDto.ProductId} not found");
 
         Variant? variantWithSameCode = await _context.Variants.AsNoTracking()
             .FirstOrDefaultAsync(v => v.VariantCode == createVariantDto.VariantCode);
         if (variantWithSameCode is not null)
-            throw new ConflictException($"Variant with code {createVariantDto.VariantCode} already exists");
+            return Result.Conflict($"Variant with code {createVariantDto.VariantCode} already exists");
 
         if (createVariantDto.Barcode is not null)
         {
             Variant? variantWithSameBarcode = await _context.Variants.AsNoTracking()
              .FirstOrDefaultAsync(v => v.Barcode != null && v.Barcode == createVariantDto.Barcode);
             if (variantWithSameBarcode is not null)
-                throw new ConflictException($"Variant with barcode {createVariantDto.Barcode} already exists");
+                return Result.Conflict($"Variant with barcode {createVariantDto.Barcode} already exists");
         }
 
         Variant newVariant = createVariantDto.Adapt<Variant>();
@@ -42,7 +42,7 @@ public class VariantService(
         return newVariant.Adapt<VariantResponseDto>();
     }
 
-    public async Task<List<VariantResponseDto>> GetAllAsync(VariantQueryDto query)
+    public async Task<Result<List<VariantResponseDto>>> GetAllAsync(VariantQueryDto query)
     {
         _logger.LogInformation("[Variant] Fetching variants with query {@Query}", query);
         var variants = await _context.Variants.AsNoTracking()
@@ -59,18 +59,18 @@ public class VariantService(
         return variants.Adapt<List<VariantResponseDto>>();
     }
 
-    public async Task<VariantResponseDto> GetByIdAsync(Guid id)
+    public async Task<Result<VariantResponseDto>> GetByIdAsync(Guid id)
     {
         _logger.LogInformation("[Variant] Fetching variant with id {Id}", id);
         Variant? variant = await _context.Variants.AsNoTracking().FirstOrDefaultAsync(v => v.Id == id);
         if (variant is null)
-            throw new NotFoundException($"Variant with id {id} not found");
+            return Result.NotFound($"Variant with id {id} not found");
 
         _logger.LogInformation("[Variant] Variant fetched successfully with id {Id}", id);
         return variant.Adapt<VariantResponseDto>();
     }
 
-    public async Task<VariantResponseDto> UpdateAsync(Guid id, UpdateVariantDto updateVariantDto)
+    public async Task<Result<VariantResponseDto>> UpdateAsync(Guid id, UpdateVariantDto updateVariantDto)
     {
         _logger.LogInformation("[Variant] Updating variant with id {Id}", id);
 
@@ -79,19 +79,19 @@ public class VariantService(
             Product? product = await _context.Products.AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == updateVariantDto.ProductId);
             if (product is null)
-                throw new NotFoundException($"Product with id {updateVariantDto.ProductId} not found");
+                return Result.NotFound($"Product with id {updateVariantDto.ProductId} not found");
         }
 
         Variant? variant = await _context.Variants.FindAsync(id);
         if (variant is null)
-            throw new NotFoundException($"Variant with id {id} not found");
+            return Result.NotFound($"Variant with id {id} not found");
 
         if (updateVariantDto.VariantCode is not null && variant.VariantCode != updateVariantDto.VariantCode)
         {
             Variant? variantWithSameCode = await _context.Variants.AsNoTracking()
              .FirstOrDefaultAsync(v => v.VariantCode == updateVariantDto.VariantCode && v.Id != id);
             if (variantWithSameCode is not null)
-                throw new ConflictException($"Variant with code {updateVariantDto.VariantCode} already exists");
+                return Result.Conflict($"Variant with code {updateVariantDto.VariantCode} already exists");
         }
 
         if (updateVariantDto.Barcode is not null && variant.Barcode != updateVariantDto.Barcode)
@@ -99,7 +99,7 @@ public class VariantService(
             Variant? variantWithSameBarcode = await _context.Variants.AsNoTracking()
              .FirstOrDefaultAsync(v => v.Barcode != null && v.Barcode == updateVariantDto.Barcode && v.Id != id);
             if (variantWithSameBarcode is not null)
-                throw new ConflictException($"Variant with barcode {updateVariantDto.Barcode} already exists");
+                return Result.Conflict($"Variant with barcode {updateVariantDto.Barcode} already exists");
         }
 
         updateVariantDto.Adapt(variant);
@@ -109,15 +109,16 @@ public class VariantService(
         return variant.Adapt<VariantResponseDto>();
     }
 
-    public async Task DeleteAsync(Guid id)
+    public async Task<Result> DeleteAsync(Guid id)
     {
         _logger.LogInformation("[Variant] Deleting variant with id {Id}", id);
         Variant? variant = await _context.Variants.FindAsync(id);
         if (variant is null)
-            throw new NotFoundException($"Variant with id {id} not found");
+            return Result.NotFound($"Variant with id {id} not found");
 
         _context.Variants.Remove(variant);
         await _context.SaveChangesAsync();
         _logger.LogInformation("[Variant] Deleted variant with id {Id}", id);
+        return Result.Success();
     }
 }

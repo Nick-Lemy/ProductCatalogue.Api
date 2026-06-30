@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductCatalogue.Api.DTOs;
+using ProductCatalogue.Api.Extensions;
 using ProductCatalogue.Api.Services;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -23,7 +24,7 @@ public class AssetsController(
     public async Task<ActionResult<List<AssetResponseDto>>> GetAll(
         [FromQuery] AssetQueryDto query)
     {
-        return await _assetService.GetAllAsync(query);
+        return (await _assetService.GetAllAsync(query)).ToActionResult();
     }
 
     [HttpGet("{id}")]
@@ -33,7 +34,7 @@ public class AssetsController(
     [SwaggerResponse(200, "Asset fetched successfully", typeof(AssetResponseDto))]
     public async Task<ActionResult<AssetResponseDto>> GetById(Guid id)
     {
-        return await _assetService.GetByIdAsync(id);
+        return (await _assetService.GetByIdAsync(id)).ToActionResult();
     }
 
     [HttpPost]
@@ -43,8 +44,12 @@ public class AssetsController(
     [SwaggerResponse(201, "Asset created successfully", typeof(AssetResponseDto))]
     public async Task<ActionResult<AssetResponseDto>> Create([FromForm] UploadAssetDto uploadAssetDto)
     {
-        AssetResponseDto newAsset = await _assetService.CreateAsync(uploadAssetDto);
-        return CreatedAtAction(nameof(GetById), new { id = newAsset.Id }, newAsset);
+        var result = await _assetService.CreateAsync(uploadAssetDto);
+
+        if(!result.IsSuccess)
+            return result.ToActionResult();
+    
+        return CreatedAtAction(nameof(GetById), new { id = result.Value!.Id }, result.Value);
     }
     
     [HttpPost("{id}/reject")]
@@ -54,8 +59,7 @@ public class AssetsController(
     [SwaggerResponse(204, "Asset rejected successfully", typeof(void))]
     public async Task<ActionResult> Reject(Guid id, [FromBody] RejectAssetDto rejectAssetDto)
     {
-        await _assetService.RejectAssetAsync(id, rejectAssetDto);
-        return NoContent();
+        return (await _assetService.RejectAssetAsync(id, rejectAssetDto)).ToActionResult();
     }
 
     [HttpPost("{id}/approve")]
@@ -63,12 +67,9 @@ public class AssetsController(
         Summary = "Approve asset",
         Description = "Approves an existing asset.")]
     [SwaggerResponse(204, "Asset approved successfully", typeof(void))]
-    public async Task<ActionResult> Approve(
-        Guid id,
-        [FromBody] ApproveAssetDto approveAssetDto)
+    public async Task<ActionResult> Approve(Guid id)
     {
-        await _assetService.ApproveAssetAsync(id, approveAssetDto);
-        return NoContent();
+        return (await _assetService.ApproveAssetAsync(id)).ToActionResult();
     }
 
     [HttpPut("{id}")]
@@ -80,8 +81,7 @@ public class AssetsController(
         Guid id,
         [FromForm] UpdateAssetDto updateAssetDto)
     {
-        await _assetService.UpdateAsync(id, updateAssetDto);
-        return NoContent();
+        return (await _assetService.UpdateAsync(id, updateAssetDto)).ToActionResult();
     }
 
     [HttpDelete("{id}")]
@@ -91,7 +91,6 @@ public class AssetsController(
     [SwaggerResponse(204, "Asset deleted successfully", typeof(void))]
     public async Task<ActionResult> Delete(Guid id)
     {
-        await _assetService.DeleteAsync(id);
-        return NoContent();
+        return (await _assetService.DeleteAsync(id)).ToActionResult();
     }
 }

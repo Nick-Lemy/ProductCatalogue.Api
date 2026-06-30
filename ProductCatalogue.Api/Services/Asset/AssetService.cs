@@ -17,13 +17,13 @@ public class AssetService(
     private readonly ILogger<AssetService> _logger = logger;
     private readonly IFileStorageService _fileStorageService = fileStorageService;
     private readonly IAssetTagService _assetTagService = assetTagService;
-    public async Task<AssetResponseDto> CreateAsync(UploadAssetDto uploadAssetDto)
+    public async Task<Result<AssetResponseDto>> CreateAsync(UploadAssetDto uploadAssetDto)
     {
         _logger.LogInformation("[Asset] Creating asset for product {ProductId}", uploadAssetDto.ProductId);
 
         bool productExists = await _context.Products.AnyAsync(p => p.Id == uploadAssetDto.ProductId);
         if (!productExists)
-            throw new NotFoundException($"Product with id {uploadAssetDto.ProductId} not found");
+            Result.NotFound($"Product with id {uploadAssetDto.ProductId} not found");
 
         StorageUploadResult uploadResult = await _fileStorageService.UploadFileAsync(uploadAssetDto.File, "assets");
 
@@ -47,7 +47,7 @@ public class AssetService(
         return asset.Adapt<AssetResponseDto>();
     }
 
-    public async Task<List<AssetResponseDto>> GetAllAsync(AssetQueryDto query)
+    public async Task<Result<List<AssetResponseDto>>> GetAllAsync(AssetQueryDto query)
     {
         _logger.LogInformation("[Asset] Fetching assets with query {@Query}", query);
         List<Asset> assets = await _context.Assets.Include(a => a.Tags).AsNoTracking()
@@ -66,41 +66,42 @@ public class AssetService(
         return assets.Adapt<List<AssetResponseDto>>();
     }
 
-    public async Task<AssetResponseDto> GetByIdAsync(Guid id)
+    public async Task<Result<AssetResponseDto>> GetByIdAsync(Guid id)
     {
         _logger.LogInformation("[Asset] Fetching asset with id {Id}", id);
         Asset? asset = await _context.Assets.Include(a => a.Tags).AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == id);
 
         if(asset is null)
-            throw new NotFoundException($"Asset with id {id} not found");
+           return Result.NotFound($"Asset with id {id} not found");
 
         _logger.LogInformation("[Asset] Asset fetched successfully with id {Id}", id);
         return asset.Adapt<AssetResponseDto>();
     }
 
-    public async Task<AssetResponseDto> UpdateAsync(Guid id, UpdateAssetDto updateAssetDto)
+    public async Task<Result<AssetResponseDto>> UpdateAsync(Guid id, UpdateAssetDto updateAssetDto)
     {
         throw new NotImplementedException();
     }
-    public async Task DeleteAsync(Guid id)
+    public async Task<Result> DeleteAsync(Guid id)
     {
         Asset? asset = await _context.Assets.FirstOrDefaultAsync(a => a.Id == id);
         if(asset is null)
-            throw new NotFoundException($"Asset with id {id} not found");
+            return Result.NotFound($"Asset with id {id} not found");
         _context.Assets.Remove(asset);
         await _fileStorageService.DeleteFileAsync(asset.FilePublicId);
         await _context.SaveChangesAsync();
+        return Result.Success();
     }
 
-    public async Task RejectAssetAsync(Guid id, RejectAssetDto rejectAssetDto)
+    public async Task<Result> RejectAssetAsync(Guid id, RejectAssetDto rejectAssetDto)
     {
         _logger.LogInformation("[Asset] Rejecting asset with id {Id} for reason: {Reason}", id, rejectAssetDto.RejectionReason);
         Asset? asset = await _context.Assets.FirstOrDefaultAsync(a => a.Id == id);
         if(asset is null)
-            throw new NotFoundException($"Asset with id {id} not found");
+            return Result.NotFound($"Asset with id {id} not found");
 
-        if(asset.Status == AssetStatus.REJECTED) return;
+        if(asset.Status == AssetStatus.REJECTED) return Result.Success();
 
         asset.Status = AssetStatus.REJECTED;
         asset.RejectionReason = rejectAssetDto.RejectionReason;
@@ -115,16 +116,19 @@ public class AssetService(
         asset.StatusHistory.Add(log);
         await _context.SaveChangesAsync();
         _logger.LogInformation("[Asset] Asset with id {Id} rejected successfully", id);
+        return Result.Success();
     }
 
-    public async Task ApproveAssetAsync(Guid id, ApproveAssetDto approveAssetDto)
+    public async Task<Result> ApproveAssetAsync(Guid id)
     {
         _logger.LogInformation("[Asset] Approving asset with id {Id}", id);
         Asset? asset = await _context.Assets.FirstOrDefaultAsync(a => a.Id == id);
         if(asset is null)
-            throw new NotFoundException($"Asset with id {id} not found");
+            return Result.NotFound($"Asset with id {id} not found");
 
-        asset.Status = approveAssetDto.NewStatus;
+        if(asset.Status == AssetStatus.APPROVED) return Result.Success();
+
+        asset.Status = AssetStatus.APPROVED;
         AssetStatusLog log = new ()
         {
             AssetId = asset.Id,
@@ -134,5 +138,6 @@ public class AssetService(
         asset.StatusHistory.Add(log);
         await _context.SaveChangesAsync();
         _logger.LogInformation("[Asset] Asset with id {Id} approved successfully", id);
+        return Result.Success();
     }
 }

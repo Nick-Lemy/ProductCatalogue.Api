@@ -4,9 +4,9 @@ namespace ProductCatalogue.Api.Services;
 
 public interface IAuthService
 {
-    Task<AuthResult> LoginAsync(LoginDto dto);
-    Task<AuthResult> RefreshAsync(string? refreshToken);
-    Task LogoutAsync(string? refreshToken);
+    Task<Result<AuthResult>> LoginAsync(LoginDto dto);
+    Task<Result<AuthResult>> RefreshAsync(string? refreshToken);
+    Task<Result> LogoutAsync(string? refreshToken);
 }
 
 public class AuthResult

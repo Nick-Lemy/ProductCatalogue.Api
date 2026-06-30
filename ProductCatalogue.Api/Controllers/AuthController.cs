@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductCatalogue.Api.DTOs;
+using ProductCatalogue.Api.Extensions;
 using ProductCatalogue.Api.Services;
 
 namespace ProductCatalogue.Api.Controllers;
@@ -17,8 +18,11 @@ public class AuthController(IAuthService authService) : ControllerBase
     public async Task<ActionResult<AuthResponseDto>> Login([FromBody] LoginDto dto)
     {
         var result = await _authService.LoginAsync(dto);
-        SetRefreshTokenCookie(result.RefreshToken);
-        return Ok(result.Response);
+        if (!result.IsSuccess)
+            return Unauthorized(result.Error!.Message);
+
+        SetRefreshTokenCookie(result.Value!.RefreshToken);
+        return Ok(result.Value.Response);
     }
 
     [Authorize]
@@ -26,17 +30,20 @@ public class AuthController(IAuthService authService) : ControllerBase
     public async Task<ActionResult<AuthResponseDto>> Refresh()
     {
         var result = await _authService.RefreshAsync(Request.Cookies[RefreshTokenCookie]);
-        SetRefreshTokenCookie(result.RefreshToken);
-        return Ok(result.Response);
+        if (!result.IsSuccess)
+            return Unauthorized(result.Error!.Message);
+
+        SetRefreshTokenCookie(result.Value!.RefreshToken);
+        return Ok(result.Value.Response);
     }
 
     [Authorize]
     [HttpPost("logout")]
     public async Task<ActionResult> Logout()
     {
-        await _authService.LogoutAsync(Request.Cookies[RefreshTokenCookie]);
+        var result = await _authService.LogoutAsync(Request.Cookies[RefreshTokenCookie]);
         Response.Cookies.Delete(RefreshTokenCookie);
-        return NoContent();
+        return result.ToActionResult();
     }
 
     private void SetRefreshTokenCookie(string token)
