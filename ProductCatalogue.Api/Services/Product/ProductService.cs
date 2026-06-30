@@ -1,16 +1,24 @@
 using Mapster;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using ProductCatalogue.Api.Data;
 using ProductCatalogue.Api.DTOs;
+using ProductCatalogue.Api.Infrastructure.Messaging;
 using ProductCatalogue.Api.Models;
+using ProductCatalogue.Api.Settings;
+using ProductCatalogue.Contracts;
 
 namespace ProductCatalogue.Api.Services;
 
 public class ProductService(
     AppDbContext context,
+    IEventPublisher eventPublisher,
+    IOptions<KafkaSettings> kafkaSettings,
     ILogger<ProductService> logger) : IProductService
 {
     private readonly AppDbContext _context = context;
+    private readonly IEventPublisher _eventPublisher = eventPublisher;
+    private readonly string _productEventsTopic = kafkaSettings.Value.ProductEventsTopic;
     private readonly ILogger<ProductService> _logger = logger;
 
     public async Task<Result<ProductResponseDto>> CreateAsync(CreateProductDto createProductDto)
@@ -93,6 +101,15 @@ public class ProductService(
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
 
+        await _eventPublisher.PublishAsync(
+            _productEventsTopic,
+            product.Id.ToString(),
+            new EventEnvelope<ProductSubmittedForReviewPayload>
+            {
+                EventType = EventTypes.ProductSubmittedForReview,
+                Payload = new ProductSubmittedForReviewPayload(product.Id, product.ProductCode, product.Name)
+            });
+
         _logger.LogInformation("[Product] Product {id} submitted for review", id);
         return Result<ProductResponseDto>.Success(product.Adapt<ProductResponseDto>());
     }
@@ -114,6 +131,15 @@ public class ProductService(
         product.Status = ProductStatus.PUBLISHED;
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
+
+        await _eventPublisher.PublishAsync(
+            _productEventsTopic,
+            product.Id.ToString(),
+            new EventEnvelope<ProductPublishedPayload>
+            {
+                EventType = EventTypes.ProductPublished,
+                Payload = new ProductPublishedPayload(product.Id, product.ProductCode, product.Name)
+            });
 
         _logger.LogInformation("[Product] Product {id} published", id);
         return Result<ProductResponseDto>.Success(product.Adapt<ProductResponseDto>());
