@@ -1,10 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Moq;
 using ProductCatalogue.Api.Data;
 using ProductCatalogue.Api.DTOs;
+using ProductCatalogue.Api.Infrastructure.Messaging;
 using ProductCatalogue.Api.Models;
 using ProductCatalogue.Api.Services;
+using ProductCatalogue.Api.Settings;
 
 namespace ProductCatalogue.Tests.Services;
 
@@ -42,8 +46,18 @@ public class ProductServiceTests
         Season = "Winter"
     };
 
+    private static readonly IOptions<KafkaSettings> KafkaOptions = Options.Create(new KafkaSettings
+    {
+        BootstrapServers = "localhost:9092",
+        AssetEventsTopic = "catalogue.asset-events",
+        ProductEventsTopic = "catalogue.product-events"
+    });
+
     private static ProductService CreateService(AppDbContext context) =>
-        new(context, new LoggerFactory().CreateLogger<ProductService>());
+        new(context,
+            new Mock<IEventPublisher>().Object,
+            KafkaOptions,
+            new LoggerFactory().CreateLogger<ProductService>());
 
     [Fact]
     public async Task GetAllAsync_ReturnsAllProducts_WhenNoFiltersApplied()
