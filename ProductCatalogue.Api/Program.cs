@@ -7,7 +7,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using ProductCatalogue.Api.Data;
-// using ProductCatalogue.Api.Data.Seed;
 using ProductCatalogue.Api.Exceptions;
 using ProductCatalogue.Api.Mappings;
 using ProductCatalogue.Api.Models;
@@ -131,10 +130,5 @@ app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
-// using (var scope = app.Services.CreateScope())
-// {
-//     await IdentitySeeder.SeedAdminUserAsync(scope.ServiceProvider, app.Configuration);
-// }
 
 app.Run();
