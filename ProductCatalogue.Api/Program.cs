@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using ProductCatalogue.Api.Data;
 using ProductCatalogue.Api.Exceptions;
+using ProductCatalogue.Api.Infrastructure.Messaging;
 using ProductCatalogue.Api.Mappings;
 using ProductCatalogue.Api.Models;
 using ProductCatalogue.Api.Services;
@@ -74,9 +75,13 @@ builder.Services.AddSingleton(provider =>
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("Cloudinary"));
 
+builder.Services.Configure<KafkaSettings>(
+    builder.Configuration.GetSection("Kafka"));
+
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
+builder.Services.AddSingleton<IEventPublisher, KafkaEventPublisher>();
 builder.Services.AddScoped<IFileStorageService, CloudinaryService>();
 builder.Services.AddScoped<IAssetTagService, AssetTagService>();
 builder.Services.AddScoped<IAssetService, AssetService>();
