@@ -18,49 +18,54 @@ docker-compose.yml            Local PostgreSQL and Kafka
 - .NET 10 SDK
 - Docker
 
-## Configuration
-
-Config is stored in user-secrets, not in appsettings.json.
-
-API secrets:
-
-```bash
-cd ProductCatalogue.Api
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=3003;Database=product_catalogue_db;Username=<user>;Password=<password>"
-dotnet user-secrets set "Kafka:BootstrapServers" "localhost:9092"
-dotnet user-secrets set "Kafka:AssetEventsTopic" "catalogue.asset-events"
-dotnet user-secrets set "Kafka:ProductEventsTopic" "catalogue.product-events"
-```
-
-Consumer secrets:
-
-```bash
-cd ProductCatalogue.Consumer
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=3003;Database=product_catalogue_db;Username=<user>;Password=<password>"
-dotnet user-secrets set "Kafka:BootstrapServers" "localhost:9092"
-dotnet user-secrets set "Kafka:AssetEventsTopic" "catalogue.asset-events"
-dotnet user-secrets set "Kafka:ConsumerGroup" "notification-log-consumer"
-```
-
 ## Run locally
 
-Run all commands from the repo root.
+Run all commands from the repo root. Config is stored in user-secrets, not in appsettings.json.
 
-Step 1. Start PostgreSQL and Kafka. This also creates the two topics.
+Step 1. Pick your database values. Copy the template, then open `.env` and set `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` to values you choose.
 
 ```bash
 cp .env.example .env
+```
+
+Step 2. Start PostgreSQL and Kafka. This creates the database and the two topics.
+
+```bash
 docker compose up -d
 ```
 
-Step 2. Create the database schema.
+Step 3. Save the API config. Use the same user, password, and database name you set in `.env`.
+
+```bash
+cd ProductCatalogue.Api
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=3003;Database=<db>;Username=<user>;Password=<password>"
+dotnet user-secrets set "Kafka:BootstrapServers" "localhost:9092"
+dotnet user-secrets set "Kafka:AssetEventsTopic" "catalogue.asset-events"
+dotnet user-secrets set "Kafka:ProductEventsTopic" "catalogue.product-events"
+dotnet user-secrets set "AdminSeed:Email" "admin@productcatalogue.local"
+dotnet user-secrets set "AdminSeed:Password" "Admin@12345"
+cd ..
+```
+
+Step 4. Save the consumer config. Use the same database values again.
+
+```bash
+cd ProductCatalogue.Consumer
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=3003;Database=<db>;Username=<user>;Password=<password>"
+dotnet user-secrets set "Kafka:BootstrapServers" "localhost:9092"
+dotnet user-secrets set "Kafka:AssetEventsTopic" "catalogue.asset-events"
+dotnet user-secrets set "Kafka:ConsumerGroup" "notification-log-consumer"
+cd ..
+```
+
+Step 5. Create the database schema.
 
 ```bash
 dotnet ef database update --project ProductCatalogue.Api
 dotnet ef database update --project ProductCatalogue.Consumer
 ```
 
-Step 3. Start the API.
+Step 6. Start the API.
 
 ```bash
 dotnet run --project ProductCatalogue.Api
@@ -68,7 +73,7 @@ dotnet run --project ProductCatalogue.Api
 
 API runs at http://localhost:5093. Swagger UI is at http://localhost:5093/swagger.
 
-Step 4. Start the consumer in a second terminal.
+Step 7. Start the consumer in a second terminal.
 
 ```bash
 dotnet run --project ProductCatalogue.Consumer
@@ -76,7 +81,7 @@ dotnet run --project ProductCatalogue.Consumer
 
 ## Verify that messages are flowing
 
-1. Open Swagger and log in to get a token.
+1. Open Swagger and log in to get a token. The API seeds an admin user on first start. Use email `admin@productcatalogue.local` and password `Admin@12345`.
 2. Approve or reject an asset, or submit or publish a product.
 3. The API terminal logs a line like `[Kafka] Published AssetApproved`.
 4. The consumer terminal logs a line like `[Consumer] Logged AssetApproved`.
@@ -87,6 +92,16 @@ You can also read a topic directly:
 ```bash
 docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:29092 --topic catalogue.asset-events --from-beginning
 ```
+
+## Database access
+
+To open the database and look at the data, use the user and database name from your `.env`:
+
+```bash
+docker compose exec postgres psql -U <user> -d <db>
+```
+
+Then run `SELECT * FROM "NotificationLogs";` to see the consumer output. Use `\dt` to list tables and `\q` to quit.
 
 ## Topics
 
