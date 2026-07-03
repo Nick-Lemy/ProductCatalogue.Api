@@ -1,9 +1,13 @@
 using Mapster;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using ProductCatalogue.Api.Data;
 using ProductCatalogue.Api.DTOs;
 using ProductCatalogue.Api.Exceptions;
+using ProductCatalogue.Api.Infrastructure.Messaging;
 using ProductCatalogue.Api.Models;
+using ProductCatalogue.Api.Settings;
+using ProductCatalogue.Contracts;
 
 namespace ProductCatalogue.Api.Services;
 
@@ -11,12 +15,16 @@ public class AssetService(
     AppDbContext context,
     IFileStorageService fileStorageService,
      IAssetTagService assetTagService,
+    IEventPublisher eventPublisher,
+    IOptions<KafkaSettings> kafkaSettings,
     ILogger<AssetService> logger) : IAssetService
 {
     private readonly AppDbContext _context = context;
     private readonly ILogger<AssetService> _logger = logger;
     private readonly IFileStorageService _fileStorageService = fileStorageService;
     private readonly IAssetTagService _assetTagService = assetTagService;
+    private readonly IEventPublisher _eventPublisher = eventPublisher;
+    private readonly string _assetEventsTopic = kafkaSettings.Value.AssetEventsTopic;
     public async Task<Result<AssetResponseDto>> CreateAsync(UploadAssetDto uploadAssetDto)
     {
         _logger.LogInformation("[Asset] Creating asset for product {ProductId}", uploadAssetDto.ProductId);
@@ -42,6 +50,15 @@ public class AssetService(
 
         _context.Assets.Add(asset);
         await _context.SaveChangesAsync();
+
+        await _eventPublisher.PublishAsync(
+            _assetEventsTopic,
+            asset.ProductId.ToString(),
+            new EventEnvelope<AssetUploadedPayload>
+            {
+                EventType = EventTypes.AssetUploaded,
+                Payload = new AssetUploadedPayload(asset.Id, asset.ProductId, asset.VariantId, asset.AssetType.ToString(), asset.FileUrl)
+            });
 
         _logger.LogInformation("[Asset] Asset created successfully for product {ProductId}", uploadAssetDto.ProductId);
         return asset.Adapt<AssetResponseDto>();
@@ -103,6 +120,8 @@ public class AssetService(
 
         if(asset.Status == AssetStatus.REJECTED) return Result.Success();
 
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
         asset.Status = AssetStatus.REJECTED;
         asset.RejectionReason = rejectAssetDto.RejectionReason;
 
@@ -115,6 +134,17 @@ public class AssetService(
         };
         asset.StatusHistory.Add(log);
         await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
+
+        await _eventPublisher.PublishAsync(
+            _assetEventsTopic,
+            asset.ProductId.ToString(),
+            new EventEnvelope<AssetRejectedPayload>
+            {
+                EventType = EventTypes.AssetRejected,
+                Payload = new AssetRejectedPayload(asset.Id, asset.ProductId, asset.RejectionReason!)
+            });
+
         _logger.LogInformation("[Asset] Asset with id {Id} rejected successfully", id);
         return Result.Success();
     }
@@ -128,6 +158,8 @@ public class AssetService(
 
         if(asset.Status == AssetStatus.APPROVED) return Result.Success();
 
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
         asset.Status = AssetStatus.APPROVED;
         AssetStatusLog log = new ()
         {
@@ -137,6 +169,17 @@ public class AssetService(
         };
         asset.StatusHistory.Add(log);
         await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
+
+        await _eventPublisher.PublishAsync(
+            _assetEventsTopic,
+            asset.ProductId.ToString(),
+            new EventEnvelope<AssetApprovedPayload>
+            {
+                EventType = EventTypes.AssetApproved,
+                Payload = new AssetApprovedPayload(asset.Id, asset.ProductId)
+            });
+
         _logger.LogInformation("[Asset] Asset with id {Id} approved successfully", id);
         return Result.Success();
     }

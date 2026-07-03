@@ -1,10 +1,14 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Moq;
 using ProductCatalogue.Api.Data;
 using ProductCatalogue.Api.DTOs;
-using ProductCatalogue.Api.Exceptions;
+using ProductCatalogue.Api.Infrastructure.Messaging;
 using ProductCatalogue.Api.Models;
 using ProductCatalogue.Api.Services;
+using ProductCatalogue.Api.Settings;
 
 namespace ProductCatalogue.Tests.Services;
 
@@ -13,6 +17,7 @@ public class ProductServiceTests
     private AppDbContext CreateContext() =>
         new(new DbContextOptionsBuilder<AppDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options);
 
     private readonly Product _shirt = new()
@@ -41,6 +46,19 @@ public class ProductServiceTests
         Season = "Winter"
     };
 
+    private static readonly IOptions<KafkaSettings> KafkaOptions = Options.Create(new KafkaSettings
+    {
+        BootstrapServers = "localhost:9092",
+        AssetEventsTopic = "catalogue.asset-events",
+        ProductEventsTopic = "catalogue.product-events"
+    });
+
+    private static ProductService CreateService(AppDbContext context) =>
+        new(context,
+            new Mock<IEventPublisher>().Object,
+            KafkaOptions,
+            new LoggerFactory().CreateLogger<ProductService>());
+
     [Fact]
     public async Task GetAllAsync_ReturnsAllProducts_WhenNoFiltersApplied()
     {
@@ -48,12 +66,11 @@ public class ProductServiceTests
         context.Products.AddRange(_shirt, _pants);
         await context.SaveChangesAsync();
 
-        var logger = new LoggerFactory().CreateLogger<ProductService>();
-        var service = new ProductService(context, logger);
+        var service = CreateService(context);
 
         var result = await service.GetAllAsync(new ProductQueryDto());
 
-        Assert.Equal(2, result.Count);
+        Assert.Equal(2, result.Value!.Count);
     }
 
     [Fact]
@@ -63,13 +80,12 @@ public class ProductServiceTests
         context.Products.AddRange(_shirt, _pants);
         await context.SaveChangesAsync();
 
-        var logger = new LoggerFactory().CreateLogger<ProductService>();
-        var service = new ProductService(context, logger);
+        var service = CreateService(context);
 
         var result = await service.GetAllAsync(new ProductQueryDto { Brand = "Nike" });
 
-        Assert.Single(result);
-        Assert.Equal("Nike", result.First().Brand);
+        Assert.Single(result.Value!);
+        Assert.Equal("Nike", result.Value!.First().Brand);
     }
 
     [Fact]
@@ -79,12 +95,11 @@ public class ProductServiceTests
         context.Products.AddRange(_shirt, _pants);
         await context.SaveChangesAsync();
 
-        var logger = new LoggerFactory().CreateLogger<ProductService>();
-        var service = new ProductService(context, logger);
+        var service = CreateService(context);
 
         var result = await service.GetAllAsync(new ProductQueryDto { Brand = "Reebok" });
 
-        Assert.Empty(result);
+        Assert.Empty(result.Value!);
     }
 
     [Fact]
@@ -94,31 +109,31 @@ public class ProductServiceTests
         context.Products.Add(_shirt);
         await context.SaveChangesAsync();
 
-        var logger = new LoggerFactory().CreateLogger<ProductService>();
-        var service = new ProductService(context, logger);
+        var service = CreateService(context);
 
         var result = await service.GetByIdAsync(_shirt.Id);
 
-        Assert.NotNull(result);
-        Assert.Equal("Shirt", result.Name);
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Shirt", result.Value!.Name);
     }
 
     [Fact]
-    public async Task GetByIdAsync_ThrowsNotFoundException_WhenProductDoesNotExist()
+    public async Task GetByIdAsync_ReturnsNotFound_WhenProductDoesNotExist()
     {
         var context = CreateContext();
-        var logger = new LoggerFactory().CreateLogger<ProductService>();
-        var service = new ProductService(context, logger);
+        var service = CreateService(context);
 
-        await Assert.ThrowsAsync<NotFoundException>(() => service.GetByIdAsync(Guid.NewGuid()));
+        var result = await service.GetByIdAsync(Guid.NewGuid());
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.NotFound, result.Error!.Type);
     }
 
     [Fact]
     public async Task CreateAsync_AddsProductToDatabase()
     {
         var context = CreateContext();
-        var logger = new LoggerFactory().CreateLogger<ProductService>();
-        var service = new ProductService(context, logger);
+        var service = CreateService(context);
 
         var productDto = new CreateProductDto
         {
@@ -138,14 +153,13 @@ public class ProductServiceTests
     }
 
     [Fact]
-    public async Task CreateAsync_ThrowsConflictException_WhenProductCodeAlreadyExists()
+    public async Task CreateAsync_ReturnsConflict_WhenProductCodeAlreadyExists()
     {
         var context = CreateContext();
         context.Products.Add(_shirt);
         await context.SaveChangesAsync();
 
-        var logger = new LoggerFactory().CreateLogger<ProductService>();
-        var service = new ProductService(context, logger);
+        var service = CreateService(context);
 
         var productDto = new CreateProductDto
         {
@@ -158,79 +172,93 @@ public class ProductServiceTests
             Season = "Summer"
         };
 
-        await Assert.ThrowsAsync<ConflictException>(async () => await service.CreateAsync(productDto));
+        var result = await service.CreateAsync(productDto);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.Conflict, result.Error!.Type);
     }
 
     [Fact]
-    public async Task ChangeStatusAsync_ChangesProductStatus_WhenProductExists()
+    public async Task SubmitForReviewAsync_SetsStatusToInReview_WhenProductExists()
     {
         var context = CreateContext();
         context.Products.Add(_shirt);
         await context.SaveChangesAsync();
 
-        var logger = new LoggerFactory().CreateLogger<ProductService>();
-        var service = new ProductService(context, logger);
+        var service = CreateService(context);
 
-        var changeStatusDto = new ChangeStatusDto
-        {
-            Status = ProductStatus.IN_REVIEW
-        };
-
-        await service.ChangeStatusAsync(_shirt.Id, changeStatusDto);
+        await service.SubmitForReviewAsync(_shirt.Id);
 
         var updatedProduct = await context.Products.FindAsync(_shirt.Id);
         Assert.Equal(ProductStatus.IN_REVIEW, updatedProduct?.Status);
     }
 
     [Fact]
-    public async Task ChangeStatusAsync_ThrowsNotFoundException_WhenProductDoesNotExist()
+    public async Task ChangeStatusAsync_ReturnsNotFound_WhenProductDoesNotExist()
     {
         var context = CreateContext();
-        var logger = new LoggerFactory().CreateLogger<ProductService>();
-        var service = new ProductService(context, logger);
+        var service = CreateService(context);
 
         var changeStatusDto = new ChangeStatusDto
         {
             Status = ProductStatus.IN_REVIEW
         };
 
-        await Assert.ThrowsAsync<NotFoundException>(async () => await service.ChangeStatusAsync(Guid.NewGuid(), changeStatusDto));
+        var result = await service.ChangeStatusAsync(Guid.NewGuid(), changeStatusDto);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.NotFound, result.Error!.Type);
     }
 
     [Fact]
-    public async Task ChangeStatusAsync_ThrowsConflictException_WhenProductAlreadyHasStatus()
+    public async Task ChangeStatusAsync_ReturnsConflict_WhenProductAlreadyHasStatus()
     {
         var context = CreateContext();
         context.Products.Add(_shirt);
         await context.SaveChangesAsync();
 
-        var logger = new LoggerFactory().CreateLogger<ProductService>();
-        var service = new ProductService(context, logger);
+        var service = CreateService(context);
 
         var changeStatusDto = new ChangeStatusDto
         {
             Status = ProductStatus.DRAFT
         };
 
-        await Assert.ThrowsAsync<ConflictException>(async () => await service.ChangeStatusAsync(_shirt.Id, changeStatusDto));
+        var result = await service.ChangeStatusAsync(_shirt.Id, changeStatusDto);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.Conflict, result.Error!.Type);
     }
 
     [Fact]
-    public async Task ChangeStatusAsync_ThrowsConflictException_WhenChangingToPublishedAndNotReady()
+    public async Task PublishAsync_ReturnsConflict_WhenProductNotReady()
     {
         var context = CreateContext();
         context.Products.Add(_shirt);
         await context.SaveChangesAsync();
 
-        var logger = new LoggerFactory().CreateLogger<ProductService>();
-        var service = new ProductService(context, logger);
+        var service = CreateService(context);
 
-        var changeStatusDto = new ChangeStatusDto
-        {
-            Status = ProductStatus.PUBLISHED
-        };
+        var result = await service.PublishAsync(_shirt.Id);
 
-        await Assert.ThrowsAsync<ConflictException>(async () => await service.ChangeStatusAsync(_shirt.Id, changeStatusDto));
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.Conflict, result.Error!.Type);
+    }
+
+    [Fact]
+    public async Task PublishAsync_SetsStatusToPublished_WhenProductReady()
+    {
+        var context = CreateContext();
+        _shirt.Readiness = ProductReadiness.READY;
+        context.Products.Add(_shirt);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        await service.PublishAsync(_shirt.Id);
+
+        var updatedProduct = await context.Products.FindAsync(_shirt.Id);
+        Assert.Equal(ProductStatus.PUBLISHED, updatedProduct?.Status);
     }
 
     [Fact]
@@ -240,8 +268,7 @@ public class ProductServiceTests
         context.Products.Add(_shirt);
         await context.SaveChangesAsync();
 
-        var logger = new LoggerFactory().CreateLogger<ProductService>();
-        var service = new ProductService(context, logger);
+        var service = CreateService(context);
 
         var updateProductDto = new UpdateProductDto
         {
@@ -261,11 +288,10 @@ public class ProductServiceTests
     }
 
     [Fact]
-    public async Task UpdateAsync_ThrowsNotFoundException_WhenProductDoesNotExist()
+    public async Task UpdateAsync_ReturnsNotFound_WhenProductDoesNotExist()
     {
         var context = CreateContext();
-        var logger = new LoggerFactory().CreateLogger<ProductService>();
-        var service = new ProductService(context, logger);
+        var service = CreateService(context);
 
         var updateProductDto = new UpdateProductDto
         {
@@ -278,18 +304,20 @@ public class ProductServiceTests
             Season = "Summer"
         };
 
-        await Assert.ThrowsAsync<NotFoundException>(async () => await service.UpdateAsync(Guid.NewGuid(), updateProductDto));
+        var result = await service.UpdateAsync(Guid.NewGuid(), updateProductDto);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.NotFound, result.Error!.Type);
     }
 
     [Fact]
-    public async Task UpdateAsync_ThrowsConflictException_WhenProductCodeAlreadyExists()
+    public async Task UpdateAsync_ReturnsConflict_WhenProductCodeAlreadyExists()
     {
         var context = CreateContext();
         context.Products.AddRange(_shirt, _pants);
         await context.SaveChangesAsync();
 
-        var logger = new LoggerFactory().CreateLogger<ProductService>();
-        var service = new ProductService(context, logger);
+        var service = CreateService(context);
 
         var updateProductDto = new UpdateProductDto
         {
@@ -302,7 +330,10 @@ public class ProductServiceTests
             Season = "Summer"
         };
 
-        await Assert.ThrowsAsync<ConflictException>(async () => await service.UpdateAsync(_shirt.Id, updateProductDto));
+        var result = await service.UpdateAsync(_shirt.Id, updateProductDto);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.Conflict, result.Error!.Type);
     }
 
     [Fact]
@@ -312,8 +343,7 @@ public class ProductServiceTests
         context.Products.Add(_shirt);
         await context.SaveChangesAsync();
 
-        var logger = new LoggerFactory().CreateLogger<ProductService>();
-        var service = new ProductService(context, logger);
+        var service = CreateService(context);
 
         await service.DeleteAsync(_shirt.Id);
 
@@ -322,12 +352,14 @@ public class ProductServiceTests
     }
 
     [Fact]
-    public async Task DeleteAsync_ThrowsNotFoundException_WhenProductDoesNotExist()
+    public async Task DeleteAsync_ReturnsNotFound_WhenProductDoesNotExist()
     {
         var context = CreateContext();
-        var logger = new LoggerFactory().CreateLogger<ProductService>();
-        var service = new ProductService(context, logger);
+        var service = CreateService(context);
 
-        await Assert.ThrowsAsync<NotFoundException>(async () => await service.DeleteAsync(Guid.NewGuid()));
+        var result = await service.DeleteAsync(Guid.NewGuid());
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorType.NotFound, result.Error!.Type);
     }
 }

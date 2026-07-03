@@ -11,5 +11,7 @@ public interface IProductService
     public Task<Result<ProductResponseDto>> CreateAsync(CreateProductDto createProductDto);
     public Task<Result<ProductResponseDto>> UpdateAsync(Guid id, UpdateProductDto updateProductDto);
     public Task<Result<ProductResponseDto>> ChangeStatusAsync(Guid id, ChangeStatusDto changeStatusDto);
+    public Task<Result<ProductResponseDto>> SubmitForReviewAsync(Guid id);
+    public Task<Result<ProductResponseDto>> PublishAsync(Guid id);
     public Task<Result> DeleteAsync(Guid id);
 }

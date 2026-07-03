@@ -40,7 +40,8 @@ public class ProductsControllerTests
 
         var actionResult = await _controller.GetAll(query);
 
-        var returned = Assert.IsType<List<ProductResponseDto>>(actionResult.Value, exactMatch: false);
+        var ok = Assert.IsType<OkObjectResult>(actionResult.Result);
+        var returned = Assert.IsType<List<ProductResponseDto>>(ok.Value, exactMatch: false);
 
         Assert.Equal(2, returned.Count);
     }
@@ -56,7 +57,8 @@ public class ProductsControllerTests
         
         var actionResult = await _controller.GetById(productId);
 
-        var returned = Assert.IsType<ProductResponseDto>(actionResult.Value, exactMatch: false);
+        var ok = Assert.IsType<OkObjectResult>(actionResult.Result);
+        var returned = Assert.IsType<ProductResponseDto>(ok.Value, exactMatch: false);
         Assert.Equal(productId, returned.Id);
         Assert.Equal("Shirt", returned.Name);
         Assert.Equal("Nike", returned.Brand);
